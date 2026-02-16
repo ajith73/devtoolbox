@@ -36,10 +36,10 @@ export function Dashboard() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full glass border-brand/20 text-brand-light text-xs font-bold uppercase tracking-[0.2em]"
+                    className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full glass border-brand/20 text-brand font-black text-[10px] uppercase tracking-[0.3em] bg-brand/5 shadow-sm"
                 >
                     <Sparkles className="w-3.5 h-3.5 fill-brand animate-pulse" />
-                    <span>v4.5 Cloud Update</span>
+                    <span>v4.5 Cloud Migration Complete</span>
                 </motion.div>
 
                 <div className="space-y-4">
@@ -70,20 +70,48 @@ export function Dashboard() {
                     transition={{ delay: 0.3 }}
                     className="relative max-w-2xl mx-auto group"
                 >
+                    {/* Glow background */}
                     <div className="absolute inset-0 bg-brand/10 blur-[100px] opacity-0 group-focus-within:opacity-100 transition-opacity" />
-                    <div className="relative flex items-center glass rounded-3xl border-[var(--border-primary)] focus-within:border-brand/40 transition-all shadow-2xl overflow-hidden">
+
+                    {/* Search container */}
+                    <div
+                        className="
+    relative flex items-center rounded-[2rem]
+    border border-gray-300
+    focus-within:border-blue-500
+    focus-within:shadow-[0_0_0_4px_rgba(59,130,246,0.15)]
+    transition-all duration-200
+    bg-white
+  "
+                    >
+                        {/* Search icon */}
                         <Search className="w-5 h-5 ml-6 text-brand" />
+
+                        {/* Input */}
                         <input
                             type="text"
                             placeholder="Find a tool (e.g. JSON, QR, Markdown)..."
-                            className="w-full bg-transparent border-none focus:ring-0 p-5 md:p-6 text-base md:text-lg font-medium placeholder:text-[var(--text-muted)] text-[var(--text-primary)]"
+                            className="w-full bg-transparent border-0 outline-none focus:outline-none focus:ring-0
+  p-5 md:p-6 text-base md:text-lg font-medium
+  placeholder:text-[var(--text-muted)]
+  text-[var(--text-primary)]"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
+
+
+                        {/* Clear button */}
                         {searchQuery && (
-                            <button onClick={() => setSearchQuery('')} className="p-2 mr-4 hover:bg-brand/5 rounded-full transition-colors">
+                            <motion.button
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => setSearchQuery("")}
+                                className="p-3 mr-4 hover:bg-brand/10 rounded-xl transition-all flex items-center justify-center"
+                            >
                                 <X className="w-4 h-4 text-[var(--text-muted)]" />
-                            </button>
+                            </motion.button>
                         )}
                     </div>
                 </motion.div>
@@ -153,7 +181,9 @@ export function Dashboard() {
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-2 p-2 glass rounded-2xl md:rounded-3xl">
                     {categories.map((cat) => (
-                        <button
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
                             key={cat.id}
                             onClick={() => setActiveCategory(cat.id as any)}
                             className={cn(
@@ -164,7 +194,7 @@ export function Dashboard() {
                             )}
                         >
                             {cat.label}
-                        </button>
+                        </motion.button>
                     ))}
                 </div>
             </div>
@@ -185,38 +215,46 @@ export function Dashboard() {
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 transition={{ duration: 0.2 }}
                             >
-                                <Link
-                                    to={tool.path}
-                                    className="group relative flex flex-col p-8 glass rounded-[2rem] glass-hover h-full overflow-hidden"
+                                <motion.div
+                                    whileHover={{ y: -5 }}
+                                    whileTap={{ scale: 0.99 }}
+                                    className="h-full"
                                 >
-                                    {/* Favorite Pin */}
-                                    <button
-                                        onClick={(e) => {
-                                            e.preventDefault()
-                                            toggleFavorite(tool.id)
-                                        }}
-                                        className="absolute right-6 top-6 p-2 rounded-xl glass hover:brand-gradient group/star z-10 transition-all shadow-xl"
+                                    <Link
+                                        to={tool.path}
+                                        className="group relative flex flex-col p-8 glass rounded-[2rem] glass-hover h-full overflow-hidden"
                                     >
-                                        <Star className={cn("w-4 h-4 transition-all", favorites.includes(tool.id) ? "text-yellow-500 fill-yellow-500" : "text-white/10 group-hover/star:text-white")} />
-                                    </button>
+                                        {/* Favorite Pin */}
+                                        <motion.button
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.9 }}
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                toggleFavorite(tool.id)
+                                            }}
+                                            className="absolute right-6 top-6 p-2 rounded-xl glass hover:brand-gradient group/star z-10 transition-all shadow-xl bg-[var(--bg-secondary)]/50 min-w-[36px] min-h-[36px] flex items-center justify-center"
+                                        >
+                                            <Star className={cn("w-4 h-4 transition-all", favorites.includes(tool.id) ? "text-yellow-500 fill-yellow-500" : "text-[var(--text-muted)] group-hover/star:text-white")} />
+                                        </motion.button>
 
-                                    {/* Decorative Background Icon */}
-                                    <Icon className="absolute -right-4 -bottom-4 w-32 h-32 text-[var(--text-muted)] opacity-10 group-hover:text-brand/10 group-hover:opacity-100 transition-all duration-500 -rotate-12 group-hover:rotate-0" />
+                                        {/* Decorative Background Icon */}
+                                        <Icon className="absolute -right-4 -bottom-4 w-32 h-32 text-[var(--text-muted)] opacity-10 group-hover:text-brand/10 group-hover:opacity-100 transition-all duration-500 -rotate-12 group-hover:rotate-0" />
 
-                                    <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-[var(--bg-secondary)] border border-[var(--border-primary)] group-hover:brand-gradient transition-all duration-300", tool.color)}>
-                                        <Icon className="w-7 h-7 group-hover:text-white" />
-                                    </div>
+                                        <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-[var(--bg-secondary)] border border-[var(--border-primary)] group-hover:brand-gradient transition-all duration-300", tool.color)}>
+                                            <Icon className="w-7 h-7 group-hover:text-white" />
+                                        </div>
 
-                                    <h3 className="text-xl md:text-2xl font-bold mb-3 group-hover:text-brand transition-colors text-[var(--text-primary)]">{tool.name}</h3>
-                                    <p className="text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors text-sm leading-relaxed mb-6 line-clamp-2">
-                                        {tool.description}
-                                    </p>
+                                        <h3 className="text-xl md:text-2xl font-bold mb-3 group-hover:text-brand transition-colors text-[var(--text-primary)]">{tool.name}</h3>
+                                        <p className="text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors text-sm leading-relaxed mb-6 line-clamp-2">
+                                            {tool.description}
+                                        </p>
 
-                                    <div className="flex items-center text-brand font-bold text-xs mt-auto uppercase tracking-widest">
-                                        <span>Open Tool</span>
-                                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                                    </div>
-                                </Link>
+                                        <div className="flex items-center text-brand font-bold text-xs mt-auto uppercase tracking-widest">
+                                            <span>Open Tool</span>
+                                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                        </div>
+                                    </Link>
+                                </motion.div>
                             </motion.div>
                         )
                     })}

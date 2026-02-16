@@ -23,6 +23,11 @@ import { BezierTool } from './components/tools/BezierTool'
 import { TextTool } from './components/tools/TextTool'
 import { AgeCalculatorTool } from './components/tools/AgeCalculatorTool'
 import { MarkdownTool } from './components/tools/MarkdownTool'
+import { XmlYamlTool } from './components/tools/XmlYamlTool'
+import { FlexTool } from './components/tools/FlexTool'
+import { GridTool } from './components/tools/GridTool'
+import { GithubReadmeTool } from './components/tools/GithubReadmeTool'
+import { PdfTool } from './components/tools/PdfTool'
 import { InfoPage } from './components/InfoPage'
 
 function App() {
@@ -53,6 +58,11 @@ function App() {
           <Route path="/text" element={<TextTool />} />
           <Route path="/age" element={<AgeCalculatorTool />} />
           <Route path="/markdown" element={<MarkdownTool />} />
+          <Route path="/xml-yaml" element={<XmlYamlTool />} />
+          <Route path="/flex" element={<FlexTool />} />
+          <Route path="/grid" element={<GridTool />} />
+          <Route path="/github-readme" element={<GithubReadmeTool />} />
+          <Route path="/pdf" element={<PdfTool />} />
 
           <Route path="/privacy" element={
             <InfoPage
@@ -71,7 +81,6 @@ function App() {
               title="Terms of Service"
               type="terms"
               content={[
-                "License\nDevBox is provided as-is under the MIT License. You are free to use it for personal or commercial projects.",
                 "Usage Restrictions\nYou may not use our tools to process data that violates local or international laws.",
                 "No Warranty\nWhile we strive for 100% accuracy, we are not responsible for errors in tool output or data loss."
               ]}

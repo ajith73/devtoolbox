@@ -60,18 +60,20 @@ export function Sidebar() {
             </div>
 
             <nav className="flex-1 px-4 space-y-1 overflow-y-auto pt-4 no-scrollbar">
-                <Link
-                    to="/"
-                    className={cn(
-                        "flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all mb-6",
-                        location.pathname === '/'
-                            ? "bg-brand/10 text-brand shadow-sm shadow-brand/5"
-                            : "text-[var(--text-secondary)] hover:text-brand hover:bg-brand/5"
-                    )}
-                >
-                    <LayoutGrid className="w-5 h-5" />
-                    <span className="font-bold text-sm uppercase tracking-wide">Dashboard</span>
-                </Link>
+                <motion.div whileTap={{ scale: 0.98 }}>
+                    <Link
+                        to="/"
+                        className={cn(
+                            "flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all mb-6",
+                            location.pathname === '/'
+                                ? "bg-brand/10 text-brand shadow-sm shadow-brand/5"
+                                : "text-[var(--text-secondary)] hover:text-brand hover:bg-brand/5"
+                        )}
+                    >
+                        <LayoutGrid className="w-5 h-5" />
+                        <span className="font-bold text-sm uppercase tracking-wide">Dashboard</span>
+                    </Link>
+                </motion.div>
 
                 {recentTools.length > 0 && (
                     <div className="pb-6 space-y-1">
@@ -82,19 +84,20 @@ export function Sidebar() {
                         {recentTools.map((tool) => {
                             const Icon = tool.icon
                             return (
-                                <Link
-                                    key={`recent-${tool.id}`}
-                                    to={tool.path}
-                                    className={cn(
-                                        "flex items-center space-x-3 px-3 py-2 rounded-xl transition-all group",
-                                        location.pathname === tool.path
-                                            ? "bg-brand/10 text-brand font-bold"
-                                            : "text-[var(--text-secondary)] hover:text-brand hover:bg-brand/5"
-                                    )}
-                                >
-                                    <Icon className={cn("w-4 h-4 transition-colors", location.pathname === tool.path ? "text-brand" : "group-hover:text-brand")} />
-                                    <span className="text-sm">{tool.name}</span>
-                                </Link>
+                                <motion.div whileTap={{ scale: 0.98 }} key={`recent-${tool.id}`}>
+                                    <Link
+                                        to={tool.path}
+                                        className={cn(
+                                            "flex items-center space-x-3 px-3 py-2 rounded-xl transition-all group",
+                                            location.pathname === tool.path
+                                                ? "bg-brand/10 text-brand font-bold"
+                                                : "text-[var(--text-secondary)] hover:text-brand hover:bg-brand/5"
+                                        )}
+                                    >
+                                        <Icon className={cn("w-4 h-4 transition-colors", location.pathname === tool.path ? "text-brand" : "group-hover:text-brand")} />
+                                        <span className="text-sm">{tool.name}</span>
+                                    </Link>
+                                </motion.div>
                             )
                         })}
                     </div>
@@ -107,19 +110,20 @@ export function Sidebar() {
                 {TOOLS.map((tool: Tool) => {
                     const Icon = tool.icon
                     return (
-                        <Link
-                            key={tool.id}
-                            to={tool.path}
-                            className={cn(
-                                "flex items-center space-x-3 px-3 py-2 rounded-xl transition-all group",
-                                location.pathname === tool.path
-                                    ? "bg-brand/10 text-brand font-bold"
-                                    : "text-[var(--text-secondary)] hover:text-brand hover:bg-brand/5"
-                            )}
-                        >
-                            <Icon className={cn("w-4 h-4 transition-colors", location.pathname === tool.path ? "text-brand" : "group-hover:text-brand")} />
-                            <span className="text-sm">{tool.name}</span>
-                        </Link>
+                        <motion.div whileTap={{ scale: 0.98 }} key={tool.id}>
+                            <Link
+                                to={tool.path}
+                                className={cn(
+                                    "flex items-center space-x-3 px-3 py-2 rounded-xl transition-all group",
+                                    location.pathname === tool.path
+                                        ? "bg-brand/10 text-brand font-bold"
+                                        : "text-[var(--text-secondary)] hover:text-brand hover:bg-brand/5"
+                                )}
+                            >
+                                <Icon className={cn("w-4 h-4 transition-colors", location.pathname === tool.path ? "text-brand" : "group-hover:text-brand")} />
+                                <span className="text-sm">{tool.name}</span>
+                            </Link>
+                        </motion.div>
                     )
                 })}
             </nav>

@@ -5,6 +5,7 @@ import { cn } from '../../lib/utils'
 import confetti from 'canvas-confetti'
 import { TOOLS } from '../../lib/config'
 import { useRecentlyUsed } from '../../lib/storage'
+import { motion } from 'framer-motion'
 
 interface ToolPageProps {
     title: string
@@ -98,30 +99,36 @@ export function ToolLayout({
 
                 <div className="flex items-center space-x-3">
                     {onReset && (
-                        <button
+                        <motion.button
+                            whileHover={{ scale: 1.1, rotate: -20 }}
+                            whileTap={{ scale: 0.9 }}
                             onClick={onReset}
-                            className="p-3 text-[var(--text-muted)] hover:text-brand hover:bg-brand/5 rounded-xl transition-all"
+                            className="p-3 text-[var(--text-muted)] hover:text-brand hover:bg-brand/5 rounded-xl transition-all min-w-[44px] min-h-[44px] flex items-center justify-center"
                             title="Reset (Ctrl+Enter)"
                         >
                             <RefreshCcw className="w-5 h-5" />
-                        </button>
+                        </motion.button>
                     )}
                     {onDownload && (
-                        <button
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             disabled={downloadDisabled}
                             onClick={onDownload}
-                            className="px-5 py-2.5 glass text-[var(--text-secondary)] hover:text-brand rounded-xl transition-all flex items-center space-x-2 border-[var(--border-primary)] hover:border-brand/40 disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="px-5 py-2.5 glass text-[var(--text-secondary)] hover:text-brand rounded-xl transition-all flex items-center space-x-2 border-[var(--border-primary)] hover:border-brand/40 disabled:opacity-30 disabled:cursor-not-allowed min-h-[44px]"
                         >
                             <Download className="w-4 h-4" />
                             <span className="font-bold text-sm">Download</span>
-                        </button>
+                        </motion.button>
                     )}
                     {onCopy && (
-                        <button
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             disabled={copyDisabled}
                             onClick={handleCopy}
                             className={cn(
-                                "px-8 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] md:text-xs transition-all flex items-center space-x-2 shadow-xl",
+                                "px-8 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] md:text-xs transition-all flex items-center space-x-2 shadow-xl min-h-[44px]",
                                 copied
                                     ? "bg-green-500 text-white"
                                     : "brand-gradient text-white hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100"
@@ -130,7 +137,7 @@ export function ToolLayout({
                         >
                             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                             <span>{copied ? 'Copied!' : 'Copy Result'}</span>
-                        </button>
+                        </motion.button>
                     )}
                 </div>
             </div>

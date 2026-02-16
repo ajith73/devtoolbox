@@ -45,7 +45,7 @@ export function InfoPage({ title, content, type = 'policy' }: { title: string, c
 
             <div className="pt-16 border-t border-white/10 text-center">
                 <p className="text-sm text-white/20">
-                    Questions about this document? Contact us at legal@devbox.io
+                    Questions about this document? Contact us at 
                 </p>
             </div>
         </div>
