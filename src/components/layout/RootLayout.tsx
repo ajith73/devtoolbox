@@ -94,16 +94,16 @@ export function RootLayout({ children }: { children: React.ReactNode }) {
                             animate={{ x: 0 }}
                             exit={{ x: '-100%' }}
                             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                            className="fixed top-0 left-0 bottom-0 w-72 bg-surface-900 border-r border-white/10 z-[50] lg:hidden overflow-y-auto"
+                            className="fixed top-0 left-0 bottom-0 w-72 bg-[var(--bg-primary)] border-r border-[var(--border-primary)] z-[50] lg:hidden overflow-y-auto"
                         >
-                            <div className="p-6 border-b border-white/10 flex items-center justify-between">
+                            <div className="p-6 border-b border-[var(--border-primary)] flex items-center justify-between">
                                 <Link to="/" className="flex items-center space-x-2">
                                     <div className="w-8 h-8 rounded-lg brand-gradient flex items-center justify-center">
                                         <CommandIcon className="w-5 h-5 text-white" />
                                     </div>
-                                    <span className="font-bold text-xl tracking-tight text-white focus:outline-none">DevBox</span>
+                                    <span className="font-bold text-xl tracking-tight text-[var(--text-primary)] focus:outline-none">DevBox</span>
                                 </Link>
-                                <button onClick={() => setMobileMenuOpen(false)} className="p-2 text-white/40 hover:text-white">
+                                <button onClick={() => setMobileMenuOpen(false)} className="p-2 text-[var(--text-muted)] hover:text-brand">
                                     <X className="w-6 h-6" />
                                 </button>
                             </div>
@@ -139,76 +139,81 @@ export function RootLayout({ children }: { children: React.ReactNode }) {
                     </div>
 
                     <div className="flex items-center space-x-4">
-                        {location.pathname !== '/' && (
-                            <button
-                                onClick={handleShare}
-                                className="p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-full transition-all relative"
-                                title="Share Tool"
-                            >
-                                <Share2 className="w-5 h-5" />
+                        <div className="flex items-center space-x-4">
+                            {location.pathname !== '/' && (
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={handleShare}
+                                    className="p-3 text-[var(--text-muted)] hover:text-brand hover:bg-brand/5 rounded-full transition-all relative flex items-center justify-center min-w-[40px] min-h-[40px]"
+                                    title="Share Tool"
+                                >
+                                    <Share2 className="w-5 h-5" />
+                                    <AnimatePresence>
+                                        {showShareToast && (
+                                            <motion.div
+                                                initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.8 }}
+                                                className="absolute top-14 left-1/2 -translate-x-1/2 px-3 py-1 bg-brand text-white text-[10px] font-bold rounded-full whitespace-nowrap z-50 flex items-center"
+                                            >
+                                                <Check className="w-3 h-3 mr-1" /> URL Copied
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </motion.button>
+                            )}
+
+                            <div className="relative">
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => setNotificationsOpen(!notificationsOpen)}
+                                    className={cn(
+                                        "p-3 rounded-xl transition-all relative min-w-[40px] min-h-[40px] flex items-center justify-center",
+                                        notificationsOpen ? "bg-brand/10 text-brand" : "text-[var(--text-secondary)] hover:text-brand hover:bg-brand/5"
+                                    )}
+                                >
+                                    <Bell className="w-5 h-5" />
+                                    <span className="absolute top-3 right-3 w-2 h-2 bg-brand rounded-full border-2 border-[var(--bg-primary)]"></span>
+                                </motion.button>
+
                                 <AnimatePresence>
-                                    {showShareToast && (
+                                    {notificationsOpen && (
                                         <motion.div
-                                            initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
                                             animate={{ opacity: 1, scale: 1, y: 0 }}
-                                            exit={{ opacity: 0, scale: 0.8 }}
-                                            className="absolute top-12 left-1/2 -translate-x-1/2 px-3 py-1 bg-brand text-white text-[10px] font-bold rounded-full whitespace-nowrap z-50 flex items-center"
+                                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                            className="fixed md:absolute right-4 md:right-0 mt-3 w-[calc(100vw-32px)] md:w-80 rounded-2xl p-4 shadow-2xl border-[var(--border-primary)] z-50 text-[var(--text-primary)] bg-[var(--bg-secondary)]"
                                         >
-                                            <Check className="w-3 h-3 mr-1" /> URL Copied
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h4 className="font-bold text-sm">Notifications</h4>
+                                                <span className="text-[10px] bg-brand text-white px-1.5 py-0.5 rounded font-black uppercase tracking-widest shadow-lg shadow-brand/20">2 Priority</span>
+                                            </div>
+                                            <div className="space-y-3">
+                                                <div className="p-4 bg-[var(--bg-primary)] rounded-xl border border-[var(--border-primary)] hover:border-brand/30 transition-all cursor-pointer text-left shadow-sm group/notif">
+                                                    <p className="text-xs font-black mb-1 group-hover:text-brand transition-colors">10 New Primitives ✨</p>
+                                                    <p className="text-[10px] text-[var(--text-muted)] leading-relaxed font-medium">JWT, Regex, Cron, and more are now fully integrated into the engine.</p>
+                                                </div>
+                                                <div className="p-4 bg-[var(--bg-primary)] rounded-xl border border-[var(--border-primary)] hover:border-brand/30 transition-all cursor-pointer text-left shadow-sm group/notif">
+                                                    <p className="text-xs font-black mb-1 group-hover:text-brand transition-colors">Vite 7 Architecture</p>
+                                                    <p className="text-[10px] text-[var(--text-muted)] leading-relaxed font-medium">System core optimized for substantial performance gains.</p>
+                                                </div>
+                                            </div>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
-                            </button>
-                        )}
+                            </div>
 
-                        <div className="relative">
-                            <button
-                                onClick={() => setNotificationsOpen(!notificationsOpen)}
-                                className={cn(
-                                    "p-2.5 rounded-xl transition-all relative",
-                                    notificationsOpen ? "bg-brand/10 text-brand" : "text-[var(--text-secondary)] hover:text-brand hover:bg-brand/5"
-                                )}
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                                className="p-3 rounded-full glass border-[var(--border-primary)] hover:brand-gradient transition-all group shadow-sm bg-[var(--bg-secondary)]/50 min-w-[40px] min-h-[40px] flex items-center justify-center"
                             >
-                                <Bell className="w-5 h-5" />
-                                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-brand rounded-full border-2 border-[var(--bg-primary)]"></span>
-                            </button>
-
-                            {notificationsOpen && (
-                                <div className="absolute right-0 mt-3 w-80 glass rounded-2xl p-4 shadow-2xl border-white/10 z-50 animate-scale-in text-white">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h4 className="font-bold text-sm">Notifications</h4>
-                                        <span className="text-[10px] bg-brand text-white px-1.5 py-0.5 rounded font-bold uppercase">2 New</span>
-                                    </div>
-                                    <div className="space-y-3">
-                                        <div className="p-3 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition-colors cursor-pointer text-left">
-                                            <p className="text-xs font-bold mb-1">10 New Tools Added! ✨</p>
-                                            <p className="text-[10px] text-white/40 leading-relaxed">JWT, Regex, Cron, and more are now live.</p>
-                                        </div>
-                                        <div className="p-3 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition-colors cursor-pointer text-left">
-                                            <p className="text-xs font-bold mb-1">Vite 7 Upgrade</p>
-                                            <p className="text-[10px] text-white/40 leading-relaxed">System core optimized for 2x faster loading.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                                {theme === 'dark' ? <Sun className="w-5 h-5 text-[var(--text-muted)] group-hover:text-white" /> : <Moon className="w-5 h-5 text-brand" />}
+                            </motion.button>
                         </div>
-
-                        <button
-                            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                            className="p-2.5 rounded-full glass border-white/5 hover:brand-gradient transition-all group"
-                        >
-                            {theme === 'dark' ? <Sun className="w-5 h-5 text-white/60 group-hover:text-white" /> : <Moon className="w-5 h-5 text-surface-400 group-hover:text-brand" />}
-                        </button>
-
-                        <div className="h-8 w-px bg-white/10 mx-2"></div>
-
-                        <a
-                            href="https://github.com"
-                            target="_blank"
-                            className="w-11 h-11 glass rounded-2xl flex items-center justify-center text-[var(--text-secondary)] hover:text-brand transition-all"
-                        >
-                            <Github className="w-5 h-5" />
-                        </a>
                     </div>
                 </header>
 
@@ -216,15 +221,15 @@ export function RootLayout({ children }: { children: React.ReactNode }) {
                     {children}
 
                     <div className="max-w-6xl mx-auto px-4 lg:px-8 py-12">
-                        <div className="w-full h-32 glass rounded-[2.5rem] border-dashed border-white/5 flex flex-col items-center justify-center space-y-2 relative overflow-hidden group">
+                        <div className="w-full h-32 glass rounded-[2.5rem] border-dashed border-[var(--border-primary)] flex flex-col items-center justify-center space-y-4 relative overflow-hidden group bg-[var(--bg-secondary)]/30">
                             <div className="absolute inset-0 bg-brand/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                             <div className="space-y-4 text-center relative">
-                                <span className="text-white/10 text-xs font-bold tracking-[0.3em] uppercase">Trusted and Used by 50,000+ Developers Weekly</span>
-                                <div className="flex items-center justify-center space-x-12 opacity-20 grayscale brightness-200 text-white">
-                                    <div className="font-bold text-xl tracking-tighter uppercase">Versal</div>
-                                    <div className="font-bold text-xl tracking-tighter uppercase">Netlify</div>
-                                    <div className="font-bold text-xl tracking-tighter uppercase">Supabase</div>
-                                    <div className="font-bold text-xl tracking-tighter uppercase">Stripe</div>
+                                <span className="text-[var(--text-muted)] text-[10px] font-black tracking-[0.4em] uppercase opacity-60">Trusted and Used by 1,000+ Developers Weekly</span>
+                                <div className="flex items-center justify-center space-x-12 opacity-30 grayscale brightness-100 text-[var(--text-primary)]">
+                                    <div className="font-bold text-xl tracking-tighter uppercase">Abc</div>
+                                    <div className="font-bold text-xl tracking-tighter uppercase">Abc</div>
+                                    <div className="font-bold text-xl tracking-tighter uppercase">Abc</div>
+                                    <div className="font-bold text-xl tracking-tighter uppercase">Abc</div>
                                 </div>
                             </div>
                         </div>
@@ -257,15 +262,12 @@ export function RootLayout({ children }: { children: React.ReactNode }) {
                                 <h4 className="text-xs font-bold uppercase tracking-widest text-brand">Project</h4>
                                 <div className="flex flex-col space-y-3">
                                     <Link to="/changelog" className="text-sm text-[var(--text-secondary)] hover:text-brand transition-colors">Changelog</Link>
-                                    <a href="https://github.com" target="_blank" className="text-sm text-[var(--text-secondary)] hover:text-brand transition-colors flex items-center">
-                                        Source Code <ArrowRight className="w-3 h-3 ml-2" />
-                                    </a>
                                 </div>
                             </div>
                         </div>
                         <div className="pt-8 border-t border-[var(--border-primary)] flex flex-col md:flex-row items-center justify-between gap-4">
                             <p className="text-[var(--text-muted)] text-[10px] font-medium uppercase tracking-wider">
-                                © 2026 devbox.io - MIT License. 100% In-Browser.
+                                © 2026 devbox.io - 100% In-Browser.
                             </p>
                             <p className="text-[var(--text-muted)] text-[10px] font-medium uppercase tracking-wider">
                                 Built for developers by developers.
@@ -278,14 +280,14 @@ export function RootLayout({ children }: { children: React.ReactNode }) {
                 {searchOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                         <div className="absolute inset-0 bg-surface-900/80 backdrop-blur-xl" onClick={() => setSearchOpen(false)}></div>
-                        <div className="relative w-full max-w-2xl glass rounded-[2.5rem] shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden animate-scale-in border-white/5 text-white">
-                            <div className="p-6 border-b border-white/10 bg-white/5 flex items-center space-x-4">
-                                <Search className="w-5 h-5 text-brand" />
+                        <div className="relative w-full max-w-2xl glass rounded-[3rem] shadow-[0_0_100px_rgba(0,0,0,0.3)] overflow-hidden animate-scale-in border-[var(--border-primary)] text-[var(--text-primary)] bg-[var(--bg-primary)]/95 backdrop-blur-2xl">
+                            <div className="p-8 border-b border-[var(--border-primary)] bg-[var(--bg-secondary)] flex items-center space-x-6">
+                                <Search className="w-6 h-6 text-brand" />
                                 <input
                                     autoFocus
                                     type="text"
-                                    placeholder="Find a tool..."
-                                    className="bg-transparent border-none text-xl p-0 h-auto focus:ring-0 flex-1 placeholder:text-white/10"
+                                    placeholder="Execute search pattern..."
+                                    className="bg-transparent border-none text-2xl p-0 h-auto focus:ring-0 flex-1 placeholder:text-[var(--text-muted)] placeholder:opacity-40 font-black tracking-tight"
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                 />

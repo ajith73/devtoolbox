@@ -20,7 +20,11 @@ import {
     Waves,
     CaseLower,
     Baby,
-    FileEdit
+    FileEdit,
+    Github,
+    Layout,
+    Grid,
+    FileStack
 } from 'lucide-react'
 
 export type Category = 'dev' | 'media' | 'data' | 'util' | 'text'
@@ -40,8 +44,8 @@ export interface Tool {
 export const TOOLS: Tool[] = [
     {
         id: 'json',
-        name: 'JSON Beautifier',
-        description: 'Clean, format and validate JSON data instantly.',
+        name: 'JSON Formatter',
+        description: 'Format, validate and prettify JSON data instantly.',
         icon: Braces,
         color: 'text-blue-400',
         path: '/json',
@@ -73,8 +77,8 @@ export const TOOLS: Tool[] = [
     },
     {
         id: 'base64',
-        name: 'Base64 Tool',
-        description: 'Encode/Decode text and files to Base64.',
+        name: 'Base64 Encoder',
+        description: 'Professional Base64 encoding and decoding for text and files.',
         icon: Type,
         color: 'text-orange-400',
         path: '/base64',
@@ -117,8 +121,8 @@ export const TOOLS: Tool[] = [
     },
     {
         id: 'timestamp',
-        name: 'Time Converter',
-        description: 'Unix timestamps to readable dates and vice-versa.',
+        name: 'Timestamp Tool',
+        description: 'Convert Unix timestamps to readable dates and vice-versa.',
         icon: Clock,
         color: 'text-indigo-400',
         path: '/timestamp',
@@ -279,5 +283,60 @@ export const TOOLS: Tool[] = [
         category: 'text',
         seoTitle: 'Online Markdown Editor with Real-time Preview',
         howToUse: 'Type your markdown on the left. See the rendered HTML on the right. You can download the result as a .md file or an HTML snippet.'
+    },
+    {
+        id: 'flex',
+        name: 'CSS Flexbox',
+        description: 'Visually design flexbox layouts and generate CSS.',
+        icon: Layout,
+        color: 'text-blue-400',
+        path: '/flex',
+        category: 'dev',
+        seoTitle: 'Free CSS Flexbox Generator Online - Visual Layout Tool',
+        howToUse: 'Adjust the container properties on the left. Watch the live rendering engine update the layout in real-time. Copy the optimized CSS code for your project.'
+    },
+    {
+        id: 'grid',
+        name: 'CSS Grid',
+        description: 'Architect complex grid layouts visually.',
+        icon: Grid,
+        color: 'text-cyan-400',
+        path: '/grid',
+        category: 'dev',
+        seoTitle: 'Online CSS Grid Generator - Professional Layout Architect',
+        howToUse: 'Set your columns, rows, and gap spacing. The interactive canvas will project your grid structure. Click "Copy Code" to export the CSS configuration.'
+    },
+    {
+        id: 'github-readme',
+        name: 'GitHub README',
+        description: 'Generate professional GitHub profile READMEs.',
+        icon: Github,
+        color: 'text-purple-400',
+        path: '/github-readme',
+        category: 'dev',
+        seoTitle: 'GitHub Profile README Generator Online - Portfolio Forge',
+        howToUse: 'Navigate through the tabs to input your details. The markdown preview updates instantly. Copy the resulting markdown and paste it into your profile repository.'
+    },
+    {
+        id: 'xml-yaml',
+        name: 'XML & YAML',
+        description: 'Format, validate and convert XML and YAML data.',
+        icon: FileCode,
+        color: 'text-orange-500',
+        path: '/xml-yaml',
+        category: 'data',
+        seoTitle: 'Online XML & YAML Formatter - Clean Data Schemas',
+        howToUse: 'Switch between YAML and XML modes using the toggle. Paste your data into the input field to see a formatted, validated projection on the right. Errors in syntax will be highlighted instantly.'
+    },
+    {
+        id: 'pdf',
+        name: 'PDF Tools',
+        description: 'Merge multiple PDFs or convert images to PDF instantly.',
+        icon: FileStack,
+        color: 'from-pink-500 to-rose-500',
+        path: '/pdf',
+        category: 'media',
+        seoTitle: 'PDF Tools - Merge, Split & Convert',
+        howToUse: 'Select a mode (Merge, Split, PDF to Image, Image to PDF). Drag and drop your files. Reorder if needed. Click "Generate" to download your processed files.'
     }
 ]
