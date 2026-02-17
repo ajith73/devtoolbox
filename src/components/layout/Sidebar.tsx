@@ -2,18 +2,35 @@ import { Link, useLocation } from 'react-router-dom'
 import { TOOLS } from '../../lib/config'
 import type { Tool } from '../../lib/config'
 import { cn } from '../../lib/utils'
-import { LayoutGrid, Command, History, Sparkles, Lightbulb } from 'lucide-react'
+import { LayoutGrid, Command, History, Sparkles, Lightbulb, ChevronDown } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+
+// Define tool groups
+const TOOL_GROUPS: Record<string, string[]> = {
+    'Data & Formats': ['json', 'json-string', 'json-xml', 'json-yaml', 'csv', 'csv-json', 'xml-yaml', 'base-converter', 'sql', 'random-data'],
+    'Encoding': ['base64', 'url', 'unicode', 'hex', 'html-entity'],
+    'Web Dev': ['api', 'html', 'regex', 'jwt', 'flex', 'grid', 'bezier', 'gradient', 'github-readme', 'github-stats'],
+    'Security': ['password', 'password-checker', 'tokens', 'hash', 'hmac', 'aes', 'file-hash'],
+    'Network': ['ip', 'ip-validator', 'dns', 'whois', 'mac', 'http-status', 'url-parser', 'subnet', 'country-info', 'weather'],
+    'Time & Date': ['timestamp', 'iso8601', 'cron', 'timezone', 'world-clock', 'duration', 'age', 'date-diff'],
+    'Images & Media': ['image', 'image-base64', 'image-info', 'image-convert', 'pdf', 'color', 'qr', 'placeholder-image'],
+    'Text & Utilities': ['text', 'markdown', 'text-stats', 'lorem', 'slug', 'ascii', 'diff', 'morse', 'unit', 'ua', 'currency', 'dictionary', 'translator']
+}
 
 export function Sidebar() {
     const location = useLocation()
     const [recentIds, setRecentIds] = useState<string[]>([])
     const [tipIndex, setTipIndex] = useState(0)
+    const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+        // Default first 3 groups expanded
+        const groups = Object.keys(TOOL_GROUPS)
+        return groups.reduce((acc, group, idx) => ({ ...acc, [group]: idx < 3 }), {})
+    })
 
     const tips = [
         "Use CMD + K to search and switch tools instantly.",
-        "All tools run 100% locally in your browser browser.",
+        "All tools run 100% locally in your browser.",
         "You can copy sharing links for any tool from the header.",
         "The API Tester supports raw text and JSON responses.",
         "Hover over tool icons on the dashboard for a sneak peek."
@@ -47,6 +64,10 @@ export function Sidebar() {
     const recentTools = recentIds
         .map(id => TOOLS.find(t => t.id === id))
         .filter((t): t is Tool => !!t)
+
+    const toggleGroup = (group: string) => {
+        setExpandedGroups(prev => ({ ...prev, [group]: !prev[group] }))
+    }
 
     return (
         <aside className="w-64 border-r border-[var(--border-primary)] hidden lg:flex flex-col bg-[var(--bg-secondary)] sticky top-0 h-screen transition-all duration-500">
@@ -104,26 +125,57 @@ export function Sidebar() {
                 )}
 
                 <div className="pt-2 pb-2">
-                    <p className="px-3 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Tools Registry</p>
+                    <p className="px-3 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Tools</p>
                 </div>
 
-                {TOOLS.map((tool: Tool) => {
-                    const Icon = tool.icon
+                {Object.entries(TOOL_GROUPS).map(([groupName, toolIds]) => {
+                    const groupTools = toolIds.map(id => TOOLS.find(t => t.id === id)).filter((t): t is Tool => !!t)
+                    const isExpanded = expandedGroups[groupName]
+
                     return (
-                        <motion.div whileTap={{ scale: 0.98 }} key={tool.id}>
-                            <Link
-                                to={tool.path}
-                                className={cn(
-                                    "flex items-center space-x-3 px-3 py-2 rounded-xl transition-all group",
-                                    location.pathname === tool.path
-                                        ? "bg-brand/10 text-brand font-bold"
-                                        : "text-[var(--text-secondary)] hover:text-brand hover:bg-brand/5"
-                                )}
+                        <div key={groupName} className="mb-2">
+                            <button
+                                onClick={() => toggleGroup(groupName)}
+                                className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-bold text-[var(--text-muted)] hover:text-brand transition-colors group"
                             >
-                                <Icon className={cn("w-4 h-4 transition-colors", location.pathname === tool.path ? "text-brand" : "group-hover:text-brand")} />
-                                <span className="text-sm">{tool.name}</span>
-                            </Link>
-                        </motion.div>
+                                <span className="uppercase tracking-wider">{groupName}</span>
+                                <ChevronDown className={cn("w-3 h-3 transition-transform", isExpanded ? "rotate-180" : "")} />
+                            </button>
+
+                            <AnimatePresence initial={false}>
+                                {isExpanded && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="overflow-hidden"
+                                    >
+                                        <div className="space-y-0.5 pt-1">
+                                            {groupTools.map((tool) => {
+                                                const Icon = tool.icon
+                                                return (
+                                                    <motion.div whileTap={{ scale: 0.98 }} key={tool.id}>
+                                                        <Link
+                                                            to={tool.path}
+                                                            className={cn(
+                                                                "flex items-center space-x-3 px-3 py-1.5 rounded-xl transition-all group",
+                                                                location.pathname === tool.path
+                                                                    ? "bg-brand/10 text-brand font-bold"
+                                                                    : "text-[var(--text-secondary)] hover:text-brand hover:bg-brand/5"
+                                                            )}
+                                                        >
+                                                            <Icon className={cn("w-3.5 h-3.5 transition-colors", location.pathname === tool.path ? "text-brand" : "group-hover:text-brand")} />
+                                                            <span className="text-xs">{tool.name}</span>
+                                                        </Link>
+                                                    </motion.div>
+                                                )
+                                            })}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     )
                 })}
             </nav>

@@ -35,12 +35,30 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
-  <script type="module" crossorigin src="/assets/index-CAbdDaJR.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-D0RDuBX2.css">
+  <script type="module" crossorigin src="/assets/index-BxpA7J57.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/vendor-TiBF-3c7.js">
+  <link rel="modulepreload" crossorigin href="/assets/ui-CZ4gphvi.js">
+  <link rel="modulepreload" crossorigin href="/assets/utils-CYX0nZkX.js">
+  <link rel="modulepreload" crossorigin href="/assets/code-DTuiJGsH.js">
+  <link rel="modulepreload" crossorigin href="/assets/pdf-CQB7dP6A.js">
+  <link rel="stylesheet" crossorigin href="/assets/index-CLpC5jRu.css">
 </head>
 
 <body class="bg-surface-900 overflow-x-hidden antialiased">
   <div id="root"></div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(registration => {
+            console.log('SW registered: ', registration);
+          })
+          .catch(registrationError => {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
+  </script>
 
   <!-- Premium background effect -->
   <div class="fixed inset-0 -z-50 overflow-hidden pointer-events-none opacity-20">
