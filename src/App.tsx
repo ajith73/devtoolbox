@@ -28,6 +28,42 @@ import { FlexTool } from './components/tools/FlexTool'
 import { GridTool } from './components/tools/GridTool'
 import { GithubReadmeTool } from './components/tools/GithubReadmeTool'
 import { PdfTool } from './components/tools/PdfTool'
+import { HtmlEntityTool } from './components/tools/HtmlEntityTool'
+import { UnicodeEscapeTool } from './components/tools/UnicodeEscapeTool'
+import { HexTool } from './components/tools/HexTool'
+import { JsonStringEscapeTool } from './components/tools/JsonStringEscapeTool'
+import { AsciiCodepointTool } from './components/tools/AsciiCodepointTool'
+import { TextStatisticsTool } from './components/tools/TextStatisticsTool'
+import { BaseConverterTool } from './components/tools/BaseConverterTool'
+import { UrlParserTool } from './components/tools/UrlParserTool'
+import { HttpStatusCodesTool } from './components/tools/HttpStatusCodesTool'
+import { UserAgentParserTool } from './components/tools/UserAgentParserTool'
+import { Iso8601Tool } from './components/tools/Iso8601Tool'
+import { DurationConverterTool } from './components/tools/DurationConverterTool'
+import { LoremIpsumTool } from './components/tools/LoremIpsumTool'
+import { PasswordCheckerTool } from './components/tools/PasswordCheckerTool'
+import { MorseTool } from './components/tools/MorseTool'
+import { JsonXmlTool } from './components/tools/JsonXmlTool'
+import { ImageBase64Tool } from './components/tools/ImageBase64Tool'
+import { ImageInfoTool } from './components/tools/ImageInfoTool'
+import { UnitConverterTool } from './components/tools/UnitConverterTool'
+import { TimezoneConverterTool } from './components/tools/TimezoneConverterTool'
+import { WorldClockTool } from './components/tools/WorldClockTool'
+import { IpLookupTool } from './components/tools/IpLookupTool'
+import { DnsLookupTool } from './components/tools/DnsLookupTool'
+import { WhoisRdapTool } from './components/tools/WhoisRdapTool'
+import { MacLookupTool } from './components/tools/MacLookupTool'
+import { HashTool } from './components/tools/HashTool'
+import { HmacTool } from './components/tools/HmacTool'
+import { AesTool } from './components/tools/AesTool'
+import { FileHashTool } from './components/tools/FileHashTool'
+import { SubnetCalculatorTool } from './components/tools/SubnetCalculatorTool'
+import { ImageFormatConverterTool } from './components/tools/ImageFormatConverterTool'
+import { SlugTool } from './components/tools/SlugTool'
+import { DateDifferenceTool } from './components/tools/DateDifferenceTool'
+import { IpValidatorTool } from './components/tools/IpValidatorTool'
+import { JsonYamlTool } from './components/tools/JsonYamlTool'
+import { CsvJsonTool } from './components/tools/CsvJsonTool'
 import { InfoPage } from './components/InfoPage'
 
 function App() {
@@ -59,6 +95,42 @@ function App() {
           <Route path="/age" element={<AgeCalculatorTool />} />
           <Route path="/markdown" element={<MarkdownTool />} />
           <Route path="/xml-yaml" element={<XmlYamlTool />} />
+          <Route path="/html-entity" element={<HtmlEntityTool />} />
+          <Route path="/unicode" element={<UnicodeEscapeTool />} />
+          <Route path="/hex" element={<HexTool />} />
+          <Route path="/json-string" element={<JsonStringEscapeTool />} />
+          <Route path="/ascii" element={<AsciiCodepointTool />} />
+          <Route path="/text-stats" element={<TextStatisticsTool />} />
+          <Route path="/base-converter" element={<BaseConverterTool />} />
+          <Route path="/url-parser" element={<UrlParserTool />} />
+          <Route path="/http-status" element={<HttpStatusCodesTool />} />
+          <Route path="/ua" element={<UserAgentParserTool />} />
+          <Route path="/iso8601" element={<Iso8601Tool />} />
+          <Route path="/duration" element={<DurationConverterTool />} />
+          <Route path="/lorem" element={<LoremIpsumTool />} />
+          <Route path="/password-checker" element={<PasswordCheckerTool />} />
+          <Route path="/morse" element={<MorseTool />} />
+          <Route path="/json-xml" element={<JsonXmlTool />} />
+          <Route path="/image-base64" element={<ImageBase64Tool />} />
+          <Route path="/image-info" element={<ImageInfoTool />} />
+          <Route path="/unit" element={<UnitConverterTool />} />
+          <Route path="/timezone" element={<TimezoneConverterTool />} />
+          <Route path="/world-clock" element={<WorldClockTool />} />
+          <Route path="/ip" element={<IpLookupTool />} />
+          <Route path="/dns" element={<DnsLookupTool />} />
+          <Route path="/whois" element={<WhoisRdapTool />} />
+          <Route path="/mac" element={<MacLookupTool />} />
+          <Route path="/hash" element={<HashTool />} />
+          <Route path="/hmac" element={<HmacTool />} />
+          <Route path="/aes" element={<AesTool />} />
+          <Route path="/file-hash" element={<FileHashTool />} />
+          <Route path="/subnet" element={<SubnetCalculatorTool />} />
+          <Route path="/image-convert" element={<ImageFormatConverterTool />} />
+          <Route path="/slug" element={<SlugTool />} />
+          <Route path="/date-diff" element={<DateDifferenceTool />} />
+          <Route path="/ip-validator" element={<IpValidatorTool />} />
+          <Route path="/json-yaml" element={<JsonYamlTool />} />
+          <Route path="/csv-json" element={<CsvJsonTool />} />
           <Route path="/flex" element={<FlexTool />} />
           <Route path="/grid" element={<GridTool />} />
           <Route path="/github-readme" element={<GithubReadmeTool />} />

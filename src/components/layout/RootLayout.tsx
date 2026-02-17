@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Sidebar } from './Sidebar'
-import { Menu, Search, Bell, X, Command as CommandIcon, ArrowRight, Github, LayoutGrid, Share2, Check, Sun, Moon } from 'lucide-react'
+import { Menu, Search, Bell, X, Command as CommandIcon, ArrowRight, LayoutGrid, Share2, Check, Sun, Moon } from 'lucide-react'
 import { TOOLS } from '../../lib/config'
 import type { Tool } from '../../lib/config'
 import { Link, useNavigate, useLocation } from 'react-router-dom'

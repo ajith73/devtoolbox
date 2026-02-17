@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://devbox.io/</loc>
+    <lastmod>2026-02-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url><loc>https://devbox.io/json</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/api</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/image</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/base64</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/sql</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/tokens</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/jwt</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/timestamp</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/regex</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/html</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/csv</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/password</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/url</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/color</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/diff</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/cron</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/qr</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/gradient</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/bezier</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/text</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/age</loc><priority>0.8</priority></url>
+  <url><loc>https://devbox.io/markdown</loc><priority>0.8</priority></url>
+</urlset>
