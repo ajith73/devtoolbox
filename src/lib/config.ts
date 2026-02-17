@@ -7,6 +7,7 @@ import {
     Fingerprint,
     FileCode,
     Clock,
+    ArrowRightLeft,
     SearchCode,
     Eye,
     FileJson,
@@ -22,9 +23,15 @@ import {
     Baby,
     FileEdit,
     Github,
+    Calculator,
     Layout,
     Grid,
-    FileStack
+    FileStack,
+    DollarSign,
+    BookOpen,
+    Dices,
+    Cloud,
+    Languages
 } from 'lucide-react'
 
 export type Category = 'dev' | 'media' | 'data' | 'util' | 'text'
@@ -33,10 +40,11 @@ export interface Tool {
     id: string
     name: string
     description: string
-    icon: any
+    icon: React.ComponentType<{ className?: string }>
     color: string
     path: string
     category: Category
+    group?: string
     seoTitle?: string
     howToUse?: string
 }
@@ -338,5 +346,489 @@ export const TOOLS: Tool[] = [
         category: 'media',
         seoTitle: 'PDF Tools - Merge, Split & Convert',
         howToUse: 'Select a mode (Merge, Split, PDF to Image, Image to PDF). Drag and drop your files. Reorder if needed. Click "Generate" to download your processed files.'
+    },
+    {
+        id: 'html-entity',
+        name: 'HTML Entity',
+        description: 'Encode or decode HTML entities locally in your browser.',
+        icon: Eye,
+        color: 'text-red-400',
+        path: '/html-entity',
+        category: 'dev',
+        seoTitle: 'HTML Entity Encoder & Decoder - Local & Fast',
+        howToUse: 'Switch between Encode and Decode. Paste your content into the input area. Copy the output when ready.'
+    },
+    {
+        id: 'unicode',
+        name: 'Unicode Escape',
+        description: 'Convert text to Unicode escape sequences and back.',
+        icon: Type,
+        color: 'text-indigo-400',
+        path: '/unicode',
+        category: 'dev',
+        seoTitle: 'Unicode Escape Encoder & Decoder - \\uXXXX / \\u{...}',
+        howToUse: 'Use Encode to turn text into \\uXXXX / \\u{...} sequences. Use Decode to convert escape sequences back to characters.'
+    },
+    {
+        id: 'hex',
+        name: 'Hex Encode',
+        description: 'Encode text to hex or decode hex back to UTF-8 text.',
+        icon: Fingerprint,
+        color: 'text-yellow-400',
+        path: '/hex',
+        category: 'dev',
+        seoTitle: 'Hex Encoder & Decoder - Text to Hex (UTF-8)',
+        howToUse: 'Pick Encode to convert text into hex bytes. Pick Decode to convert a hex string (spaces allowed) back into text.'
+    },
+    {
+        id: 'json-string',
+        name: 'JSON String Escape',
+        description: 'Escape and unescape JSON string literals.',
+        icon: Braces,
+        color: 'text-blue-400',
+        path: '/json-string',
+        category: 'data',
+        seoTitle: 'JSON String Escaper - Escape / Unescape JSON Literals',
+        howToUse: 'Use Escape to convert raw text into a JSON string literal. Use Unescape to paste a JSON string literal and get the decoded text.'
+    },
+    {
+        id: 'ascii',
+        name: 'ASCII / Code Point',
+        description: 'Inspect characters and their Unicode code points.',
+        icon: FileCode,
+        color: 'text-orange-400',
+        path: '/ascii',
+        category: 'util',
+        seoTitle: 'ASCII & Unicode Code Point Lookup - Dec/Hex/Unicode',
+        howToUse: 'Paste text and view each character with its decimal/hex code point and Unicode escape sequence. Copy exports a TSV table.'
+    },
+    {
+        id: 'text-stats',
+        name: 'Text Statistics',
+        description: 'Count words, characters, lines and bytes instantly.',
+        icon: FileEdit,
+        color: 'text-emerald-400',
+        path: '/text-stats',
+        category: 'text',
+        seoTitle: 'Text Statistics - Word Count, Character Count, Lines, Bytes',
+        howToUse: 'Paste your text and the stats update instantly. Use Copy to export the stats summary.'
+    },
+    {
+        id: 'base-converter',
+        name: 'Base Converter',
+        description: 'Convert integers between bases 2 and 36 (big integer support).',
+        icon: Database,
+        color: 'text-cyan-400',
+        path: '/base-converter',
+        category: 'dev',
+        seoTitle: 'Base Converter - Binary, Decimal, Hex, Base36',
+        howToUse: 'Set the input base and output base, then paste your integer value. The result is computed locally as you type.'
+    },
+    {
+        id: 'url-parser',
+        name: 'URL Parser',
+        description: 'Parse a URL into protocol, host, path, query params, and more.',
+        icon: Link,
+        color: 'text-gray-400',
+        path: '/url-parser',
+        category: 'dev',
+        seoTitle: 'URL Parser - Breakdown URL Components & Query Parameters',
+        howToUse: 'Paste a URL and the tool outputs a JSON breakdown. Query parameters are grouped by key (including repeated keys).'
+    },
+    {
+        id: 'http-status',
+        name: 'HTTP Status Codes',
+        description: 'Offline reference for common HTTP status codes with search.',
+        icon: Globe,
+        color: 'text-green-400',
+        path: '/http-status',
+        category: 'dev',
+        seoTitle: 'HTTP Status Codes Reference - Search & Copy',
+        howToUse: 'Search by code or keyword. Copy exports matching rows as TSV.'
+    },
+    {
+        id: 'ua',
+        name: 'User Agent Parser',
+        description: 'Parse and inspect a user-agent string locally.',
+        icon: Fingerprint,
+        color: 'text-yellow-400',
+        path: '/ua',
+        category: 'dev',
+        seoTitle: 'User Agent Parser - Inspect Browser & OS Hints',
+        howToUse: 'Paste a UA string, or leave empty to use your current browser UA. Copy exports JSON.'
+    },
+    {
+        id: 'iso8601',
+        name: 'ISO 8601 Parser',
+        description: 'Parse ISO 8601 timestamps and view epoch + formatted outputs.',
+        icon: Clock,
+        color: 'text-indigo-400',
+        path: '/iso8601',
+        category: 'util',
+        seoTitle: 'ISO 8601 Parser - ISO to Epoch Converter',
+        howToUse: 'Paste an ISO timestamp and view UTC ISO, epoch milliseconds/seconds, and formatted dates.'
+    },
+    {
+        id: 'duration',
+        name: 'Duration Converter',
+        description: 'Convert durations between ms, seconds, minutes, hours and days.',
+        icon: Clock,
+        color: 'text-blue-500',
+        path: '/duration',
+        category: 'util',
+        seoTitle: 'Duration Converter - ms, s, min, h, days',
+        howToUse: 'Enter a value and unit. The tool outputs conversions to other units. Copy exports TSV.'
+    },
+    {
+        id: 'lorem',
+        name: 'Lorem Ipsum',
+        description: 'Generate placeholder text locally.',
+        icon: FileEdit,
+        color: 'text-blue-300',
+        path: '/lorem',
+        category: 'text',
+        seoTitle: 'Lorem Ipsum Generator - Paragraphs & Words',
+        howToUse: 'Choose paragraphs and words per paragraph, then copy the generated text.'
+    },
+    {
+        id: 'password-checker',
+        name: 'Password Checker',
+        description: 'Check password strength locally using heuristics.',
+        icon: ShieldCheck,
+        color: 'text-lime-400',
+        path: '/password-checker',
+        category: 'util',
+        seoTitle: 'Password Strength Checker - Local Heuristic Score',
+        howToUse: 'Type a password to see a strength score and suggestions. Copy exports the summary.'
+    },
+    {
+        id: 'morse',
+        name: 'Morse Code',
+        description: 'Encode text to Morse code or decode Morse back to text.',
+        icon: Waves,
+        color: 'text-pink-400',
+        path: '/morse',
+        category: 'util',
+        seoTitle: 'Morse Code Encoder & Decoder - Local Converter',
+        howToUse: 'Switch between Encode and Decode. Use / as a word separator for spaces.'
+    },
+    {
+        id: 'json-xml',
+        name: 'JSON ↔ XML',
+        description: 'Convert JSON to XML and XML to JSON locally.',
+        icon: FileJson,
+        color: 'text-sky-400',
+        path: '/json-xml',
+        category: 'data',
+        seoTitle: 'JSON to XML / XML to JSON Converter - Local',
+        howToUse: 'Select conversion direction, paste input, and copy the converted output.'
+    },
+    {
+        id: 'image-base64',
+        name: 'Image Base64',
+        description: 'Convert an image file to a Base64 string.',
+        icon: ImageIcon,
+        color: 'text-purple-400',
+        path: '/image-base64',
+        category: 'media',
+        seoTitle: 'Image to Base64 Converter - Local & Fast',
+        howToUse: 'Upload an image and copy the Base64 output.'
+    },
+    {
+        id: 'image-info',
+        name: 'Image Info',
+        description: 'View image metadata (type, size, dimensions) locally.',
+        icon: ImageIcon,
+        color: 'text-purple-400',
+        path: '/image-info',
+        category: 'media',
+        seoTitle: 'Image Info Viewer - Dimensions & File Details',
+        howToUse: 'Upload an image to see its type, size, and pixel dimensions.'
+    },
+    {
+        id: 'unit',
+        name: 'Unit Converter',
+        description: 'Convert common units (length, weight, data size) locally.',
+        icon: ArrowRightLeft,
+        color: 'text-orange-400',
+        path: '/unit',
+        category: 'util',
+        seoTitle: 'Unit Converter - Length, Weight, Data',
+        howToUse: 'Pick a category, enter a value, and choose From/To units. Copy exports a single-line TSV conversion.'
+    },
+    {
+        id: 'timezone',
+        name: 'Timezone Converter',
+        description: 'Convert and view times across time zones.',
+        icon: Clock,
+        color: 'text-indigo-400',
+        path: '/timezone',
+        category: 'util',
+        seoTitle: 'Timezone Converter - View Time in Any Zone',
+        howToUse: 'Paste an ISO timestamp and choose From/To time zones. The tool shows the same moment rendered in both zones.'
+    },
+    {
+        id: 'world-clock',
+        name: 'World Clock',
+        description: 'Track current time across multiple time zones.',
+        icon: Clock,
+        color: 'text-blue-500',
+        path: '/world-clock',
+        category: 'util',
+        seoTitle: 'World Clock - Multiple Time Zones',
+        howToUse: 'Select multiple time zones and the clock updates every second.'
+    },
+    {
+        id: 'ip',
+        name: 'IP Lookup',
+        description: 'Get your public IP and query IP RDAP ownership data.',
+        icon: Globe,
+        color: 'text-green-400',
+        path: '/ip',
+        category: 'dev',
+        seoTitle: 'IP Lookup - Public IP + RDAP (WHOIS)',
+        howToUse: 'Use "Get Public IP" to fetch your IP. Use RDAP to query details for an IP address. Some requests may be blocked by CORS.'
+    },
+    {
+        id: 'dns',
+        name: 'DNS Lookup',
+        description: 'Query DNS records using DNS-over-HTTPS.',
+        icon: Globe,
+        color: 'text-emerald-400',
+        path: '/dns',
+        category: 'dev',
+        seoTitle: 'DNS Lookup - DoH Resolver',
+        howToUse: 'Enter a domain and record type (A/AAAA/CNAME/TXT/etc.). Results are returned as JSON from a public DNS-over-HTTPS service.'
+    },
+    {
+        id: 'whois',
+        name: 'WHOIS (RDAP)',
+        description: 'Lookup domain or IP registration data via RDAP.',
+        icon: FileCode,
+        color: 'text-orange-400',
+        path: '/whois',
+        category: 'dev',
+        seoTitle: 'WHOIS Lookup (RDAP) - Domain/IP Registration Data',
+        howToUse: 'Enter a domain or IP address. The tool uses rdap.org and returns JSON. Some environments may block via CORS.'
+    },
+    {
+        id: 'mac',
+        name: 'MAC Lookup',
+        description: 'Lookup MAC address vendor information.',
+        icon: Fingerprint,
+        color: 'text-yellow-400',
+        path: '/mac',
+        category: 'dev',
+        seoTitle: 'MAC Vendor Lookup - OUI Search',
+        howToUse: 'Paste a MAC address and the tool queries a free vendor endpoint. Some environments may block via CORS.'
+    },
+    {
+        id: 'hash',
+        name: 'Hash Calculator',
+        description: 'Compute SHA hashes locally using WebCrypto.',
+        icon: Fingerprint,
+        color: 'text-yellow-400',
+        path: '/hash',
+        category: 'dev',
+        seoTitle: 'Hash Calculator - SHA-1 / SHA-256 / SHA-512',
+        howToUse: 'Paste text, select an algorithm, and click Hash. Output is generated locally.'
+    },
+    {
+        id: 'hmac',
+        name: 'HMAC Calculator',
+        description: 'Compute HMAC signatures locally using WebCrypto.',
+        icon: ShieldCheck,
+        color: 'text-lime-400',
+        path: '/hmac',
+        category: 'dev',
+        seoTitle: 'HMAC Calculator - HMAC-SHA256/SHA512',
+        howToUse: 'Enter secret and message, choose an algorithm, then Sign. Output is generated locally.'
+    },
+    {
+        id: 'aes',
+        name: 'AES Encrypt / Decrypt',
+        description: 'AES-256-GCM encryption with PBKDF2 passphrase derivation.',
+        icon: ShieldCheck,
+        color: 'text-blue-500',
+        path: '/aes',
+        category: 'dev',
+        seoTitle: 'AES Encrypt / Decrypt - AES-256-GCM + PBKDF2',
+        howToUse: 'Encrypt generates a JSON envelope (salt/iv/ciphertext). Decrypt expects the envelope JSON and the same passphrase.'
+    },
+    {
+        id: 'file-hash',
+        name: 'File Hash',
+        description: 'Compute SHA hashes for local files (WebCrypto).',
+        icon: FileCode,
+        color: 'text-orange-400',
+        path: '/file-hash',
+        category: 'dev',
+        seoTitle: 'File Hash - SHA-256 File Checksum',
+        howToUse: 'Drop a file, choose algorithm, and hash. No uploads; everything runs locally.'
+    },
+    {
+        id: 'subnet',
+        name: 'Subnet Calculator',
+        description: 'Calculate IPv4 subnet details from CIDR notation.',
+        icon: Calculator,
+        color: 'text-cyan-400',
+        path: '/subnet',
+        category: 'dev',
+        seoTitle: 'Subnet Calculator - Network/Broadcast/Usable Range',
+        howToUse: 'Enter an IPv4 address with CIDR (e.g. 192.168.1.10/24). Copy exports JSON output.'
+    },
+    {
+        id: 'image-convert',
+        name: 'Image Format Converter',
+        description: 'Convert images between PNG, JPG and WebP locally.',
+        icon: ImageIcon,
+        color: 'text-purple-400',
+        path: '/image-convert',
+        category: 'media',
+        seoTitle: 'Image Format Converter - PNG/JPG/WebP',
+        howToUse: 'Upload an image, select output format (and quality for JPG/WebP), then convert and download.'
+    },
+    {
+        id: 'slug',
+        name: 'Slug Converter',
+        description: 'Generate SEO-friendly URL slugs from text.',
+        icon: Link,
+        color: 'text-gray-400',
+        path: '/slug',
+        category: 'text',
+        seoTitle: 'Text to Slug Converter - SEO Friendly Slugs',
+        howToUse: 'Paste your text and copy the generated slug.'
+    },
+    {
+        id: 'date-diff',
+        name: 'Date Difference',
+        description: 'Calculate the duration between two dates.',
+        icon: CalendarClock,
+        color: 'text-blue-500',
+        path: '/date-diff',
+        category: 'util',
+        seoTitle: 'Date Difference Calculator - Duration Between Dates',
+        howToUse: 'Select From and To dates and view the duration in days/hours/minutes/seconds.'
+    },
+    {
+        id: 'ip-validator',
+        name: 'IP Validator',
+        description: 'Validate IPv4 or IPv6 addresses locally.',
+        icon: Globe,
+        color: 'text-green-400',
+        path: '/ip-validator',
+        category: 'dev',
+        seoTitle: 'IP Address Validator - IPv4 / IPv6',
+        howToUse: 'Paste an IP address to validate and see whether it is IPv4 or IPv6.'
+    },
+    {
+        id: 'json-yaml',
+        name: 'JSON ↔ YAML',
+        description: 'Convert data between JSON and YAML formats.',
+        icon: FileJson,
+        color: 'text-sky-400',
+        path: '/json-yaml',
+        category: 'data',
+        seoTitle: 'JSON to YAML / YAML to JSON Converter',
+        howToUse: 'Switch direction, paste input, and copy the output.'
+    },
+    {
+        id: 'csv-json',
+        name: 'CSV ↔ JSON',
+        description: 'Convert CSV data to JSON arrays and JSON arrays back to CSV.',
+        icon: FileJson,
+        color: 'text-sky-400',
+        path: '/csv-json',
+        category: 'data',
+        seoTitle: 'CSV to JSON / JSON to CSV Converter',
+        howToUse: 'Switch direction, paste input, and copy the output.'
+    },
+    {
+        id: 'currency',
+        name: 'Currency Converter',
+        description: 'Real-time currency exchange rates for 15+ popular currencies.',
+        icon: DollarSign,
+        color: 'text-green-500',
+        path: '/currency',
+        category: 'util',
+        seoTitle: 'Currency Converter - Real-time Exchange Rates',
+        howToUse: 'Enter amount, select from/to currencies, and see instant conversion with live rates from Frankfurter API.'
+    },
+    {
+        id: 'dictionary',
+        name: 'Dictionary',
+        description: 'Look up word definitions, pronunciations, synonyms and examples.',
+        icon: BookOpen,
+        color: 'text-blue-500',
+        path: '/dictionary',
+        category: 'text',
+        seoTitle: 'English Dictionary - Definitions, Pronunciations & Examples',
+        howToUse: 'Type a word and press Enter or click Search. View definitions, hear pronunciations, and explore synonyms.'
+    },
+    {
+        id: 'country-info',
+        name: 'Country Info',
+        description: 'Look up detailed information about any country including capital, population, languages, and more.',
+        icon: Globe,
+        color: 'text-purple-500',
+        path: '/country-info',
+        category: 'util',
+        seoTitle: 'Country Information Lookup - Flags, Capital, Population & More',
+        howToUse: 'Type a country name and press Enter. View comprehensive information including flag, capital, population, languages, currencies, and timezone data.'
+    },
+    {
+        id: 'random-data',
+        name: 'Random Data Generator',
+        description: 'Generate realistic fake data for testing - names, emails, addresses, phone numbers, and more.',
+        icon: Dices,
+        color: 'text-pink-500',
+        path: '/random-data',
+        category: 'util',
+        seoTitle: 'Random Data Generator - Fake User Data for Testing',
+        howToUse: 'Select how many records to generate (1-50) and click Generate. Use Copy or Download to export the data as JSON for your tests.'
+    },
+    {
+        id: 'weather',
+        name: 'Weather Lookup',
+        description: 'Real-time weather information for any city using Open-Meteo API.',
+        icon: Cloud,
+        color: 'text-cyan-500',
+        path: '/weather',
+        category: 'util',
+        seoTitle: 'Free Weather API Lookup - Current & Forecast',
+        howToUse: 'Enter a city name to search. View current temperature, conditions, humidity, and wind speed.'
+    },
+    {
+        id: 'github-stats',
+        name: 'GitHub Stats',
+        description: 'View detailed statistics and repositories for any GitHub user.',
+        icon: Github,
+        color: 'text-gray-200',
+        path: '/github-stats',
+        category: 'util',
+        seoTitle: 'GitHub User Stats Viewer - Repos, Followers & More',
+        howToUse: 'Enter a GitHub username to view their profile stats, popular repositories, and language usage.'
+    },
+    {
+        id: 'translator',
+        name: 'Language Translator',
+        description: 'Translate text between 15+ languages instantly using free API.',
+        icon: Languages,
+        color: 'text-indigo-500',
+        path: '/translator',
+        category: 'text',
+        seoTitle: 'Free Language Translation Tool - text to 15+ Languages',
+        howToUse: 'Select source and target languages, type or paste text, and click Translate.'
+    },
+    {
+        id: 'placeholder-image',
+        name: 'Placeholder Image Generator',
+        description: 'Generate random placeholder images with custom dimensions and effects.',
+        icon: ImageIcon,
+        color: 'text-rose-500',
+        path: '/placeholder-image',
+        category: 'media',
+        seoTitle: 'Random Placeholder Image Generator - Size, Blur & Grayscale',
+        howToUse: 'Set width, height, and effects (blur/grayscale). Click Generate to get a new image URL.'
     }
 ]

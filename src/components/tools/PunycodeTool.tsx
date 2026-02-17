@@ -3,7 +3,8 @@ import { Link } from 'lucide-react'
 import { ToolLayout } from './ToolLayout'
 import { copyToClipboard, cn } from '../../lib/utils'
 import { usePersistentState } from '../../lib/storage'
-import punycode from 'punycode/'
+// @ts-ignore
+import punycode from 'punycode'
 
 function toAscii(input: string) {
     // Convert each label to ASCII (xn--)
