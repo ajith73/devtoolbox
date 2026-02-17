@@ -8,4 +8,17 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['framer-motion', 'lucide-react', 'clsx', 'tailwind-merge', 'react-colorful'],
+          utils: ['date-fns', 'uuid', 'jspdf', 'jszip', 'papaparse', 'js-yaml', 'diff'],
+          code: ['react-syntax-highlighter', 'sql-formatter', 'xml-formatter', 'prettier'],
+          pdf: ['pdfjs-dist', 'pdf-lib']
+        }
+      }
+    }
+  }
 })

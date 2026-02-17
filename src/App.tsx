@@ -64,6 +64,14 @@ import { DateDifferenceTool } from './components/tools/DateDifferenceTool'
 import { IpValidatorTool } from './components/tools/IpValidatorTool'
 import { JsonYamlTool } from './components/tools/JsonYamlTool'
 import { CsvJsonTool } from './components/tools/CsvJsonTool'
+import { CurrencyConverterTool } from './components/tools/CurrencyConverterTool'
+import { DictionaryTool } from './components/tools/DictionaryTool'
+import { CountryInfoTool } from './components/tools/CountryInfoTool'
+import { RandomDataGeneratorTool } from './components/tools/RandomDataGeneratorTool'
+import { WeatherTool } from './components/tools/WeatherTool'
+import { GithubStatsTool } from './components/tools/GithubStatsTool'
+import { TranslatorTool } from './components/tools/TranslatorTool'
+import { PlaceholderImageTool } from './components/tools/PlaceholderImageTool'
 import { InfoPage } from './components/InfoPage'
 
 function App() {
@@ -135,6 +143,14 @@ function App() {
           <Route path="/grid" element={<GridTool />} />
           <Route path="/github-readme" element={<GithubReadmeTool />} />
           <Route path="/pdf" element={<PdfTool />} />
+          <Route path="/currency" element={<CurrencyConverterTool />} />
+          <Route path="/dictionary" element={<DictionaryTool />} />
+          <Route path="/country-info" element={<CountryInfoTool />} />
+          <Route path="/random-data" element={<RandomDataGeneratorTool />} />
+          <Route path="/weather" element={<WeatherTool />} />
+          <Route path="/github-stats" element={<GithubStatsTool />} />
+          <Route path="/translator" element={<TranslatorTool />} />
+          <Route path="/placeholder-image" element={<PlaceholderImageTool />} />
 
           <Route path="/privacy" element={
             <InfoPage
