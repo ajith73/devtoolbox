@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 // Define tool groups
 const TOOL_GROUPS: Record<string, string[]> = {
-    'Data & Formats': ['json', 'json-string', 'json-xml', 'json-yaml', 'csv', 'csv-json', 'xml-yaml', 'base-converter', 'sql', 'random-data'],
+    'Data & Formats': ['json', 'json-string', 'json-xml', 'json-yaml', 'csv', 'xml-yaml', 'base-converter', 'sql', 'random-data'],
     'Encoding': ['base64', 'url', 'unicode', 'hex', 'html-entity'],
     'Web Dev': ['api', 'html', 'regex', 'jwt', 'flex', 'grid', 'bezier', 'gradient', 'github-readme', 'github-stats'],
     'Security': ['password', 'password-checker', 'tokens', 'hash', 'hmac', 'aes', 'file-hash'],

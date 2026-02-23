@@ -63,7 +63,6 @@ import { SlugTool } from './components/tools/SlugTool'
 import { DateDifferenceTool } from './components/tools/DateDifferenceTool'
 import { IpValidatorTool } from './components/tools/IpValidatorTool'
 import { JsonYamlTool } from './components/tools/JsonYamlTool'
-import { CsvJsonTool } from './components/tools/CsvJsonTool'
 import { CurrencyConverterTool } from './components/tools/CurrencyConverterTool'
 import { DictionaryTool } from './components/tools/DictionaryTool'
 import { CountryInfoTool } from './components/tools/CountryInfoTool'
@@ -73,6 +72,11 @@ import { GithubStatsTool } from './components/tools/GithubStatsTool'
 import { TranslatorTool } from './components/tools/TranslatorTool'
 import { PlaceholderImageTool } from './components/tools/PlaceholderImageTool'
 import { InfoPage } from './components/InfoPage'
+import { ArchitectureDiagramTool } from './components/tools/ArchitectureDiagramTool'
+import { AboutPage } from './components/pages/About'
+import { PrivacyPolicyPage } from './components/pages/PrivacyPolicy'
+import { ContactPage } from './components/pages/Contact'
+import { TermsPage } from './components/pages/Terms'
 
 function App() {
   return (
@@ -138,7 +142,6 @@ function App() {
           <Route path="/date-diff" element={<DateDifferenceTool />} />
           <Route path="/ip-validator" element={<IpValidatorTool />} />
           <Route path="/json-yaml" element={<JsonYamlTool />} />
-          <Route path="/csv-json" element={<CsvJsonTool />} />
           <Route path="/flex" element={<FlexTool />} />
           <Route path="/grid" element={<GridTool />} />
           <Route path="/github-readme" element={<GithubReadmeTool />} />
@@ -151,6 +154,7 @@ function App() {
           <Route path="/github-stats" element={<GithubStatsTool />} />
           <Route path="/translator" element={<TranslatorTool />} />
           <Route path="/placeholder-image" element={<PlaceholderImageTool />} />
+          <Route path="/architecture" element={<ArchitectureDiagramTool />} />
 
           <Route path="/privacy" element={
             <InfoPage
@@ -209,6 +213,11 @@ function App() {
               ]}
             />
           } />
+
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/terms" element={<TermsPage />} />
 
           <Route path="*" element={<Dashboard />} />
         </Routes>

@@ -1,183 +1,623 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { ToolLayout } from './ToolLayout'
-import { Palette, Copy, Hash, CheckCircle2, AlertTriangle, Wand2, MousePointer2 } from 'lucide-react'
-import { HexColorPicker } from 'react-colorful'
+import {
+    Palette,
+    Copy,
+    Hash,
+    CheckCircle2,
+    AlertTriangle,
+    Wand2,
+    Eye,
+    Layers,
+    Share2,
+    Sun,
+    Moon,
+    Box,
+    RefreshCcw,
+    Target,
+    Zap,
+    Pipette,
+    FileJson,
+    Settings
+} from 'lucide-react'
+import { HexAlphaColorPicker } from 'react-colorful'
 import { copyToClipboard, cn } from '../../lib/utils'
+import { usePersistentState } from '../../lib/storage'
+import { colord, extend } from 'colord'
+import a11yPlugin from 'colord/plugins/a11y'
+import namesPlugin from 'colord/plugins/names'
+import labPlugin from 'colord/plugins/lab'
+import cmykPlugin from 'colord/plugins/cmyk'
+import hwbPlugin from 'colord/plugins/hwb'
+import lchPlugin from 'colord/plugins/lch'
+import mixPlugin from 'colord/plugins/mix'
+import harmoniesPlugin from 'colord/plugins/harmonies'
+
+// Extend colord with plugins
+extend([a11yPlugin, namesPlugin, labPlugin, cmykPlugin, hwbPlugin, lchPlugin, mixPlugin, harmoniesPlugin])
+
+// --- Types ---
+type ToolTab = 'converter' | 'accessibility' | 'palette' | 'gradient'
+type ColorBlindType = 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia'
+
+// --- Helper: Color Blind Filters ---
+const COLOR_BLIND_MATRICES: Record<ColorBlindType, string> = {
+    none: 'none',
+    protanopia: 'url(#protanopia)',
+    deuteranopia: 'url(#deuteranopia)',
+    tritanopia: 'url(#tritanopia)',
+    achromatopsia: 'url(#achromatopsia)'
+}
 
 export function ColorTool() {
-    const [color, setColor] = useState('#3b82f6')
+    // Mode & Settings
+    const [color, setColor] = usePersistentState('color_v2_val', '#3b82f6')
+    const [activeTab, setActiveTab] = useState<ToolTab>('converter')
+    const [themePreview, setThemePreview] = useState<'light' | 'dark'>('light')
+    const [cbType, setCbType] = useState<ColorBlindType>('none')
+    const [status, setStatus] = useState<string | null>(null)
 
-    const rgb = useMemo(() => {
-        const r = parseInt(color.slice(1, 3), 16)
-        const g = parseInt(color.slice(3, 5), 16)
-        const b = parseInt(color.slice(5, 7), 16)
-        return { r, g, b }
-    }, [color])
 
-    const hsl = useMemo(() => {
-        let { r, g, b } = rgb
-        r /= 255; g /= 255; b /= 255;
-        const max = Math.max(r, g, b), min = Math.min(r, g, b)
-        let h = 0, s = 0, l = (max + min) / 2
-        if (max !== min) {
-            const d = max - min
-            s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
-            switch (max) {
-                case r: h = (g - b) / d + (g < b ? 6 : 0); break
-                case g: h = (b - r) / d + 2; break
-                case b: h = (r - g) / d + 4; break
-            }
-            h /= 6
-        }
-        return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) }
-    }, [rgb])
 
-    const contrast = useMemo(() => {
-        const getLuminance = (r: number, g: number, b: number) => {
-            const a = [r, g, b].map(v => {
-                v /= 255
-                return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)
-            })
-            return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722
-        }
-        const L1 = getLuminance(rgb.r, rgb.g, rgb.b)
-        const L_white = getLuminance(255, 255, 255)
-        const L_black = getLuminance(0, 0, 0)
+    // Derived Color Data
+    const c = useMemo(() => colord(color), [color])
+    const rgba = c.toRgb()
+    const hsla = c.toHsl()
+    const cmyk = c.toCmyk()
+    const lab = c.toLab()
+    const lch = c.toLch()
+    const alpha = c.alpha()
 
-        const contrastWhite = (Math.max(L1, L_white) + 0.05) / (Math.min(L1, L_white) + 0.05)
-        const contrastBlack = (Math.max(L1, L_black) + 0.05) / (Math.min(L1, L_black) + 0.05)
+    // Calculated Values
+    const luminance = c.luminance()
+    const isDark = c.isDark()
 
+    const contrastWhite = c.contrast('#ffffff')
+    const contrastBlack = c.contrast('#000000')
+
+    const getAccessibility = useCallback((contrast: number) => ({
+        aa: contrast >= 4.5,
+        aaa: contrast >= 7,
+        aaLarge: contrast >= 3,
+        aaaLarge: contrast >= 4.5
+    }), [])
+
+    const accWhite = getAccessibility(contrastWhite)
+    const accBlack = getAccessibility(contrastBlack)
+
+    // Palette Generation
+    const harmonies = useMemo(() => {
         return {
-            white: contrastWhite.toFixed(2),
-            black: contrastBlack.toFixed(2),
-            prefers: contrastWhite > contrastBlack ? 'White' : 'Black'
+            complementary: [color, c.harmonies('complementary')[1].toHex()],
+            analogous: c.harmonies('analogous').map((cl: any) => cl.toHex()),
+            triadic: c.harmonies('triadic').map((cl: any) => cl.toHex()),
+            tetradic: c.harmonies('tetradic').map((cl: any) => cl.toHex()),
+            split: c.harmonies('split-complementary').map((cl: any) => cl.toHex())
         }
-    }, [rgb])
+    }, [color, c])
 
-    const palettes = useMemo(() => {
-        const rotate = (h: number, amount: number) => (h + amount) % 360
-        return [
-            { name: 'Complementary', hex: `hsl(${rotate(hsl.h, 180)}, ${hsl.s}%, ${hsl.l}%)` },
-            { name: 'Analogous L', hex: `hsl(${rotate(hsl.h, 330)}, ${hsl.s}%, ${hsl.l}%)` },
-            { name: 'Analogous R', hex: `hsl(${rotate(hsl.h, 30)}, ${hsl.s}%, ${hsl.l}%)` },
-            { name: 'Triadic A', hex: `hsl(${rotate(hsl.h, 120)}, ${hsl.s}%, ${hsl.l}%)` },
-            { name: 'Triadic B', hex: `hsl(${rotate(hsl.h, 240)}, ${hsl.s}%, ${hsl.l}%)` },
-        ]
-    }, [hsl])
+    const tints = useMemo(() => {
+        const list = []
+        for (let i = 1; i <= 9; i++) {
+            list.push(c.mix('#ffffff', i * 0.1).toHex())
+        }
+        return list
+    }, [c])
+
+    const shades = useMemo(() => {
+        const list = []
+        for (let i = 1; i <= 9; i++) {
+            list.push(c.mix('#000000', i * 0.1).toHex())
+        }
+        return list
+    }, [c])
+
+    // --- Handlers ---
+    const handleCopy = (text: string, label: string = 'Copied!') => {
+        copyToClipboard(text)
+        setStatus(label)
+        setTimeout(() => setStatus(null), 2000)
+    }
+
+    const exportTokens = () => {
+        const data = {
+            base: color,
+            formats: {
+                hex: color,
+                rgb: `rgb(${rgba.r}, ${rgba.g}, ${rgba.b}, ${rgba.a})`,
+                hsl: `hsl(${hsla.h}, ${hsla.s}%, ${hsla.l}%, ${hsla.a})`,
+                cmyk: `cmyk(${cmyk.c}, ${cmyk.m}, ${cmyk.y}, ${cmyk.k})`,
+                lab: `lab(${lab.l}, ${lab.a}, ${lab.b})`,
+                oklch: `oklch(${lch.l.toFixed(2)}% ${lch.c.toFixed(2)} ${lch.h.toFixed(2)})`
+            },
+            harmonies,
+            shades,
+            tints
+        }
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `color-tokens-${color.replace('#', '')}.json`
+        a.click()
+        setStatus('Tokens Exported!')
+        setTimeout(() => setStatus(null), 2000)
+    }
+
+    const sharePalette = () => {
+        const text = `DevBox Color Palette: ${color}\n\nHex: ${color}\nRGB: rgb(${rgba.r}, ${rgba.g}, ${rgba.b})\nHarmonies: ${Object.entries(harmonies).map(([k, v]) => `\n${k}: ${v.join(', ')}`).join('')}`
+        handleCopy(text, 'Palette link copied!')
+    }
+
+    const openEyeDropper = async () => {
+        if (!('EyeDropper' in window)) {
+            return
+        }
+        // @ts-ignore - EyeDropper is experimental
+        const dropper = new window.EyeDropper()
+        try {
+            const result = await dropper.open()
+            setColor(result.sRGBHex)
+        } catch (e) {
+            console.log('User canceled eye dropper')
+        }
+    }
+
+    const autoFixContrast = (bg: string) => {
+        let current = c
+        let iteration = 0
+        while (current.contrast(bg) < 4.5 && iteration < 100) {
+            current = bg === '#ffffff' ? current.darken(0.01) : current.lighten(0.01)
+            iteration++
+        }
+        setColor(current.toHex())
+        setStatus(iteration < 100 ? `Contrast Adjusted (${current.contrast(bg).toFixed(2)}:1)` : 'Could not reach target contrast')
+        setTimeout(() => setStatus(null), 3000)
+    }
 
     return (
         <ToolLayout
-            title="Color Converter & Contrast"
-            description="Professional grade color toolkit with WCAG verification and palette generation."
+            title="Color Toolkit (Pro)"
+            description="Professional conversion, accessibility audit, and palette synthesis."
             icon={Palette}
             onReset={() => setColor('#3b82f6')}
+            onCopy={() => handleCopy(color)}
         >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 text-[var(--text-primary)]">
-                <div className="space-y-8">
-                    <div className="flex flex-col items-center space-y-6">
-                        <div className="custom-color-picker glass p-8 rounded-[4rem] border border-[var(--border-primary)] shadow-2xl relative bg-[var(--bg-secondary)]/30">
-                            <div className="absolute -top-4 -right-4 w-16 h-16 rounded-[2rem] border-4 border-[var(--bg-primary)] shadow-2xl transition-all duration-300 z-10" style={{ backgroundColor: color }} />
-                            <HexColorPicker color={color} onChange={setColor} style={{ width: '100%', maxWidth: '320px', height: '320px' }} />
-                        </div>
-
-                        <div className="w-full flex items-center space-x-4 bg-[var(--input-bg)] p-5 rounded-[1.5rem] border border-[var(--border-primary)] shadow-sm group focus-within:border-brand/40 transition-all">
-                            <Hash className="w-5 h-5 text-[var(--text-muted)] group-focus-within:text-brand" />
-                            <input
-                                className="flex-1 bg-transparent border-none p-0 focus:ring-0 font-mono text-xl md:text-2xl uppercase font-black text-[var(--text-primary)] tracking-widest"
-                                value={color}
-                                onChange={(e) => {
-                                    const val = e.target.value
-                                    if (/^#[0-9A-F]{6}$/i.test(val)) setColor(val)
-                                }}
-                                onBlur={(e) => {
-                                    const val = e.target.value
-                                    if (val && !val.startsWith('#')) setColor('#' + val)
-                                }}
-                            />
-                            <button onClick={() => copyToClipboard(color)} className="p-2 text-[var(--text-muted)] hover:text-brand transition-all hover:scale-110">
-                                <Copy className="w-5 h-5" />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="p-8 glass rounded-[2.5rem] space-y-8 border-[var(--border-primary)] shadow-sm">
-                        <h3 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center space-x-2 pl-2">
-                            <MousePointer2 className="w-4 h-4" />
-                            <span>Contrast Assessment</span>
-                        </h3>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="p-6 bg-[var(--bg-secondary)]/50 rounded-[2rem] border border-[var(--border-primary)] flex flex-col items-center justify-center space-y-3 shadow-inner">
-                                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">On White</p>
-                                <p className="text-3xl font-mono font-black tracking-tighter text-[var(--text-primary)]">{contrast.white}:1</p>
-                                <span className={cn("px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest", parseFloat(contrast.white) > 4.5 ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500")}>
-                                    {parseFloat(contrast.white) > 4.5 ? 'PASS (AA)' : 'FAIL'}
-                                </span>
-                            </div>
-                            <div className="p-6 bg-[var(--bg-secondary)]/50 rounded-[2rem] border border-[var(--border-primary)] flex flex-col items-center justify-center space-y-3 shadow-inner">
-                                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">On Black</p>
-                                <p className="text-3xl font-mono font-black tracking-tighter text-[var(--text-primary)]">{contrast.black}:1</p>
-                                <span className={cn("px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest", parseFloat(contrast.black) > 4.5 ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500")}>
-                                    {parseFloat(contrast.black) > 4.5 ? 'PASS (AA)' : 'FAIL'}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="p-5 bg-brand/5 rounded-2xl border border-brand/20 flex items-center justify-between shadow-sm">
-                            <span className="text-xs font-medium text-[var(--text-secondary)] italic">Recommendation: Best with <span className="text-brand font-black uppercase">{contrast.prefers}</span> text</span>
-                            {parseFloat(contrast.white) > 7 || parseFloat(contrast.black) > 7 ? <CheckCircle2 className="w-5 h-5 text-green-500 transition-colors" /> : <AlertTriangle className="w-5 h-5 text-yellow-500 animate-pulse" />}
-                        </div>
+            {/* Status Toast */}
+            {status && (
+                <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <div className="bg-[var(--text-primary)] text-[var(--bg-primary)] px-8 py-4 rounded-[2rem] shadow-2xl font-black uppercase text-[10px] tracking-[0.2em] flex items-center space-x-3 border border-white/10">
+                        <div className="w-2 h-2 rounded-full bg-brand animate-pulse" />
+                        <span>{status}</span>
                     </div>
                 </div>
+            )}
 
-                <div className="space-y-6">
-                    <div className="p-8 glass rounded-[2.5rem] border-white/5 space-y-8">
-                        <div className="space-y-4">
-                            <h3 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] pl-2">Live Chromatic Preview</h3>
-                            <div
-                                className="h-44 rounded-[2.5rem] shadow-2xl transition-all duration-300 flex items-center justify-center border-4 border-[var(--border-primary)] relative overflow-hidden group"
-                                style={{ backgroundColor: color }}
-                            >
-                                <p className="text-2xl font-black tracking-tighter mix-blend-difference text-white opacity-20 group-hover:opacity-100 transition-opacity uppercase tracking-[0.2em] select-none">DevBox Design</p>
+            {/* Color Blind SVG Filters */}
+            <svg style={{ display: 'none' }}>
+                <filter id="protanopia">
+                    <feColorMatrix type="matrix" values="0.567, 0.433, 0, 0, 0, 0.558, 0.442, 0, 0, 0, 0, 0.242, 0.758, 0, 0, 0, 0, 0, 1, 0" />
+                </filter>
+                <filter id="deuteranopia">
+                    <feColorMatrix type="matrix" values="0.625, 0.375, 0, 0, 0, 0.7, 0.3, 0, 0, 0, 0, 0.3, 0.7, 0, 0, 0, 0, 0, 1, 0" />
+                </filter>
+                <filter id="tritanopia">
+                    <feColorMatrix type="matrix" values="0.95, 0.05, 0, 0, 0, 0, 0.433, 0.567, 0, 0, 0, 0.475, 0.525, 0, 0, 0, 0, 0, 1, 0" />
+                </filter>
+                <filter id="achromatopsia">
+                    <feColorMatrix type="matrix" values="0.299, 0.587, 0.114, 0, 0, 0.299, 0.587, 0.114, 0, 0, 0.299, 0.587, 0.114, 0, 0, 0, 0, 0, 1, 0" />
+                </filter>
+            </svg>
+
+            <div className="space-y-8" style={{ filter: COLOR_BLIND_MATRICES[cbType] }}>
+                {/* Navigation */}
+                <div className="flex flex-wrap gap-2 p-1 bg-[var(--bg-secondary)] rounded-2xl border border-[var(--border-primary)] w-fit mx-auto">
+                    {(['converter', 'accessibility', 'palette', 'gradient'] as ToolTab[]).map(t => (
+                        <button
+                            key={t}
+                            onClick={() => setActiveTab(t)}
+                            className={cn(
+                                "px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                                activeTab === t
+                                    ? "bg-brand text-white shadow-lg shadow-brand/20"
+                                    : "text-[var(--text-muted)] hover:text-brand hover:bg-brand/5"
+                            )}
+                        >
+                            {t}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {/* Left Column: Input & Preview */}
+                    <div className="lg:col-span-5 space-y-6">
+                        <div className="p-8 glass rounded-[3rem] border border-[var(--border-primary)] bg-[var(--bg-secondary)]/30 flex flex-col items-center space-y-8">
+                            <div className="relative group">
+                                <div className="absolute -inset-4 bg-gradient-to-tr from-brand/20 to-purple-500/20 rounded-full blur-2xl opacity-50 transition-opacity" />
+                                <div className="relative custom-color-picker p-4 rounded-full border border-[var(--border-primary)] shadow-inner">
+                                    <HexAlphaColorPicker color={color} onChange={setColor} />
+                                </div>
+                            </div>
+
+                            <div className="w-full space-y-4">
+                                <div className="flex items-center space-x-3 bg-[var(--input-bg)] p-4 rounded-2xl border border-[var(--border-primary)] focus-within:border-brand/40 transition-all">
+                                    <Hash className="w-5 h-5 text-brand" />
+                                    <input
+                                        type="text"
+                                        value={color.toUpperCase()}
+                                        onChange={(e) => colord(e.target.value).isValid() && setColor(e.target.value)}
+                                        className="flex-1 bg-transparent font-mono text-xl font-black uppercase outline-none text-[var(--text-primary)] tracking-widest"
+                                    />
+                                    <div className="flex items-center space-x-1">
+                                        <button onClick={openEyeDropper} className="p-3 hover:bg-brand/10 rounded-xl text-[var(--text-muted)] hover:text-brand transition-all" title="Eye Dropper Tool">
+                                            <Pipette className="w-5 h-5" />
+                                        </button>
+                                        <button onClick={() => handleCopy(color)} className="p-3 hover:bg-brand/10 rounded-xl text-[var(--text-muted)] hover:text-brand transition-all" title="Copy HEX">
+                                            <Copy className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] px-2">
+                                    <div className="flex items-center space-x-2">
+                                        <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: color }} />
+                                        <span>Current stream</span>
+                                    </div>
+                                    <span>{alpha < 1 ? `Alpha: ${Math.round(alpha * 100)}%` : 'Opaque'}</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-4">
+                        {/* Format Matrix */}
+                        <div className="grid grid-cols-2 gap-4">
                             {[
-                                { label: 'RGB Vector', value: `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})` },
-                                { label: 'HSL Cylinder', value: `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)` },
-                            ].map((fmt) => (
-                                <div key={fmt.label} className="flex items-center justify-between p-5 bg-[var(--bg-secondary)]/50 rounded-[1.5rem] border border-[var(--border-primary)] shadow-sm hover:border-brand/20 transition-all">
-                                    <div className="space-y-1">
-                                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">{fmt.label}</p>
-                                        <code className="text-sm font-mono font-black text-[var(--text-primary)]">{fmt.value}</code>
-                                    </div>
-                                    <button onClick={() => copyToClipboard(fmt.value)} className="p-2 text-[var(--text-muted)] hover:text-brand transition-all hover:scale-110">
-                                        <Copy className="w-4 h-4" />
-                                    </button>
+                                { label: 'RGB', val: `rgb(${rgba.r}, ${rgba.g}, ${rgba.b})` },
+                                { label: 'HSL', val: `hsl(${hsla.h}, ${hsla.s}%, ${hsla.l}%)` },
+                                { label: 'CMYK', val: `cmyk(${cmyk.c}, ${cmyk.m}, ${cmyk.y}, ${cmyk.k})` },
+                                { label: 'LAB', val: `lab(${lab.l}, ${lab.a}, ${lab.b})` }
+                            ].map(item => (
+                                <div key={item.label} className="p-4 bg-[var(--bg-secondary)]/30 border border-[var(--border-primary)] rounded-2xl flex flex-col group hover:border-brand/40 transition-all cursor-pointer" onClick={() => handleCopy(item.val)}>
+                                    <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{item.label}</span>
+                                    <code className="text-[10px] font-mono font-bold truncate text-[var(--text-primary)]">{item.val}</code>
                                 </div>
                             ))}
                         </div>
+                    </div>
 
-                        <div className="space-y-5 pt-8 border-t border-[var(--border-primary)]">
-                            <div className="flex items-center justify-between px-2">
-                                <h3 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center">
-                                    <Wand2 className="w-4 h-4 mr-2 text-brand" />
-                                    Palette Synthesis
-                                </h3>
+                    {/* Right Column: Active Tab Content */}
+                    <div className="lg:col-span-7 space-y-6">
+                        {activeTab === 'converter' && (
+                            <div className="space-y-6">
+                                {/* Extended Conversion Info */}
+                                <div className="p-8 glass rounded-[3rem] border border-[var(--border-primary)] space-y-8">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-3">
+                                            <Target className="w-5 h-5 text-brand" />
+                                            <h3 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Chromatic Metadata</h3>
+                                        </div>
+                                        <div className="flex items-center space-x-4">
+                                            <div className="flex items-center space-x-2 bg-emerald-500/10 px-3 py-1 rounded-full">
+                                                <Zap className="w-3 h-3 text-emerald-500" />
+                                                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">OKLCH Gamut OK</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-4">
+                                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Relative Luminance</p>
+                                            <div className="h-4 bg-[var(--bg-primary)] rounded-full overflow-hidden border border-[var(--border-primary)]">
+                                                <div
+                                                    className="h-full brand-gradient transition-all duration-500"
+                                                    style={{ width: `${luminance * 100}%` }}
+                                                />
+                                            </div>
+                                            <div className="flex justify-between text-[10px] font-mono font-bold text-[var(--text-primary)]">
+                                                <span>0.0 (Black)</span>
+                                                <span className="text-brand">{luminance.toFixed(4)}</span>
+                                                <span>1.0 (White)</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-5 bg-[var(--input-bg)] rounded-3xl border border-[var(--border-primary)] flex flex-col justify-center space-y-2">
+                                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Modern CSS Space</p>
+                                            <div className="flex items-center justify-between">
+                                                <code className="text-sm font-mono font-black text-brand">oklch({lch.l.toFixed(2)}%, {lch.c.toFixed(2)}, {lch.h.toFixed(2)})</code>
+                                                <button onClick={() => handleCopy(`oklch(${lch.l.toFixed(2)}% ${lch.c.toFixed(2)} ${lch.h.toFixed(2)})`)} className="p-2 text-[var(--text-muted)] hover:text-brand">
+                                                    <Copy className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Real-time Theming Preview */}
+                                    <div className="pt-8 border-t border-[var(--border-primary)] space-y-6">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Component Stress Test</h3>
+                                            <div className="flex p-1 bg-[var(--bg-primary)] rounded-xl border border-[var(--border-primary)]">
+                                                <button
+                                                    onClick={() => setThemePreview('light')}
+                                                    className={cn("p-2 rounded-lg transition-all", themePreview === 'light' ? "bg-white text-black shadow-sm" : "text-[var(--text-muted)]")}
+                                                >
+                                                    <Sun className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => setThemePreview('dark')}
+                                                    className={cn("p-2 rounded-lg transition-all", themePreview === 'dark' ? "bg-black text-white shadow-sm" : "text-[var(--text-muted)]")}
+                                                >
+                                                    <Moon className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className={cn(
+                                            "p-8 rounded-[2.5rem] border transition-colors space-y-6",
+                                            themePreview === 'light' ? "bg-white border-gray-200 text-gray-900" : "bg-gray-900 border-gray-800 text-white"
+                                        )}>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="space-y-4">
+                                                    <h4 className="text-[10px] font-black uppercase tracking-widest opacity-60">Action Primitives</h4>
+                                                    <button
+                                                        className="w-full py-4 rounded-xl font-black uppercase tracking-[0.2em] text-xs shadow-lg transition-transform active:scale-95"
+                                                        style={{ backgroundColor: color, color: isDark ? '#ffffff' : '#000000' }}
+                                                    >
+                                                        Primary Button
+                                                    </button>
+                                                    <button
+                                                        className="w-full py-4 rounded-xl font-black uppercase tracking-[0.2em] text-xs border-2 shadow-sm"
+                                                        style={{ borderColor: color, color: color }}
+                                                    >
+                                                        Outline Button
+                                                    </button>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    <h4 className="text-[10px] font-black uppercase tracking-widest opacity-60">Typography Flow</h4>
+                                                    <p className="text-xl font-bold leading-tight" style={{ color: color }}>Heading Dynamic Stream</p>
+                                                    <p className="text-xs opacity-80 leading-relaxed">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam at varius enim, a finibus ex. Etiam tempor congue.</p>
+                                                    <a href="#" className="inline-block text-xs font-black underline underline-offset-4" style={{ color: color }}>Interactive Link Block</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="grid grid-cols-5 gap-3">
-                                {palettes.map((p, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => {
-                                            // Handle palette selection
-                                        }}
-                                        className="group relative"
-                                        title={p.name}
-                                    >
-                                        <div className="aspect-square rounded-[1.25rem] border border-[var(--border-primary)] transition-all group-hover:scale-110 group-hover:rotate-6 shadow-sm" style={{ backgroundColor: p.hex }} />
-                                        <div className="mt-3 text-[8px] text-[var(--text-muted)] font-black uppercase tracking-tighter truncate text-center">{p.name.split(' ')[0]}</div>
-                                    </button>
-                                ))}
+                        )}
+
+                        {activeTab === 'accessibility' && (
+                            <div className="space-y-6">
+                                {/* Contrast Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* White Contrast */}
+                                    <div className="p-8 glass rounded-[3rem] border border-[var(--border-primary)] space-y-6">
+                                        <div className="flex items-center justify-between font-black">
+                                            <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)]">Contrast vs White</span>
+                                            <span className={cn("text-2xl font-mono", accWhite.aa ? "text-emerald-500" : "text-rose-500")}>{contrastWhite.toFixed(2)}:1</span>
+                                        </div>
+                                        <div className="bg-white rounded-2xl p-6 h-24 flex items-center justify-center border border-gray-100 shadow-inner">
+                                            <span className="text-2xl font-black" style={{ color: color }}>Agitprop</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {[
+                                                { label: 'AA Regular', pass: accWhite.aa },
+                                                { label: 'AAA Regular', pass: accWhite.aaa },
+                                                { label: 'AA Large', pass: accWhite.aaLarge },
+                                                { label: 'AAA Large', pass: accWhite.aaaLarge }
+                                            ].map(r => (
+                                                <div key={r.label} className={cn("px-4 py-2 rounded-xl border flex items-center justify-between", r.pass ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-500" : "bg-rose-500/5 border-rose-500/20 text-rose-500")}>
+                                                    <span className="text-[9px] font-black uppercase tracking-tight">{r.label}</span>
+                                                    {r.pass ? <CheckCircle2 className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {!accWhite.aa && (
+                                            <button
+                                                onClick={() => autoFixContrast('#ffffff')}
+                                                className="w-full py-3 bg-brand text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-brand/20 flex items-center justify-center space-x-2"
+                                            >
+                                                <RefreshCcw className="w-3 h-3" />
+                                                <span>Auto-fix for White</span>
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Black Contrast */}
+                                    <div className="p-8 glass rounded-[3rem] border border-[var(--border-primary)] space-y-6">
+                                        <div className="flex items-center justify-between font-black">
+                                            <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)]">Contrast vs Black</span>
+                                            <span className={cn("text-2xl font-mono", accBlack.aa ? "text-emerald-500" : "text-rose-500")}>{contrastBlack.toFixed(2)}:1</span>
+                                        </div>
+                                        <div className="bg-black rounded-2xl p-6 h-24 flex items-center justify-center border border-gray-800 shadow-inner">
+                                            <span className="text-2xl font-black" style={{ color: color }}>Agitprop</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {[
+                                                { label: 'AA Regular', pass: accBlack.aa },
+                                                { label: 'AAA Regular', pass: accBlack.aaa },
+                                                { label: 'AA Large', pass: accBlack.aaLarge },
+                                                { label: 'AAA Large', pass: accBlack.aaaLarge }
+                                            ].map(r => (
+                                                <div key={r.label} className={cn("px-4 py-2 rounded-xl border flex items-center justify-between", r.pass ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-500" : "bg-rose-500/5 border-rose-500/20 text-rose-500")}>
+                                                    <span className="text-[9px] font-black uppercase tracking-tight">{r.label}</span>
+                                                    {r.pass ? <CheckCircle2 className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {!accBlack.aa && (
+                                            <button
+                                                onClick={() => autoFixContrast('#000000')}
+                                                className="w-full py-3 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center justify-center space-x-2"
+                                            >
+                                                <RefreshCcw className="w-3 h-3" />
+                                                <span>Auto-fix for Black</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Color Blind Simulation */}
+                                <div className="p-8 glass rounded-[3rem] border border-[var(--border-primary)] space-y-6">
+                                    <div className="flex items-center space-x-3">
+                                        <Eye className="w-5 h-5 text-brand" />
+                                        <h3 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Vision Impairment Simulation</h3>
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                        {(['none', 'protanopia', 'deuteranopia', 'tritanopia', 'achromatopsia'] as ColorBlindType[]).map(t => (
+                                            <button
+                                                key={t}
+                                                onClick={() => setCbType(t)}
+                                                className={cn(
+                                                    "p-3 rounded-xl border flex flex-col items-center space-y-2 transition-all",
+                                                    cbType === t ? "bg-brand/10 border-brand shadow-sm" : "bg-[var(--bg-primary)] border-[var(--border-primary)] opacity-50 hover:opacity-100"
+                                                )}
+                                            >
+                                                <div className="w-full aspect-[2/1] rounded-lg shadow-inner" style={{ backgroundColor: color, filter: COLOR_BLIND_MATRICES[t] }} />
+                                                <span className="text-[8px] font-black uppercase tracking-tighter text-center leading-none">{t === 'none' ? 'Standard' : t}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'palette' && (
+                            <div className="space-y-6">
+                                {/* Color Harmonies */}
+                                <div className="p-8 glass rounded-[3rem] border border-[var(--border-primary)] space-y-8">
+                                    <div className="flex items-center space-x-3">
+                                        <Wand2 className="w-5 h-5 text-brand" />
+                                        <h3 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Chromatic Harmonies</h3>
+                                    </div>
+                                    <div className="space-y-6">
+                                        {Object.entries(harmonies).map(([type, colors]) => (
+                                            <div key={type} className="space-y-2">
+                                                <div className="flex items-center justify-between px-2">
+                                                    <span className="text-[9px] font-black uppercase text-[var(--text-muted)] tracking-widest">{type}</span>
+                                                    <button onClick={() => handleCopy(JSON.stringify(colors), `${type.toUpperCase()} Array Copied!`)} className="text-[8px] font-black text-brand uppercase hover:underline">Export Array</button>
+                                                </div>
+                                                <div className="flex rounded-2xl overflow-hidden border border-[var(--border-primary)] shadow-sm h-16">
+                                                    {colors.map((hex, i) => (
+                                                        <div
+                                                            key={i}
+                                                            className="flex-1 transition-all hover:flex-[2] cursor-pointer group relative"
+                                                            style={{ backgroundColor: hex }}
+                                                            onClick={() => setColor(hex)}
+                                                        >
+                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-[8px] font-mono text-white font-black">
+                                                                {hex.toUpperCase()}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Shades & Tints (Design System Scale) */}
+                                <div className="p-8 glass rounded-[3rem] border border-[var(--border-primary)] space-y-6">
+                                    <div className="flex items-center space-x-3">
+                                        <Layers className="w-5 h-5 text-brand" />
+                                        <h3 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Design System Scale (50-900)</h3>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-8">
+                                        <div className="space-y-4">
+                                            <p className="text-[9px] font-black uppercase text-[var(--text-muted)] tracking-widest px-2">Tints (Mix White)</p>
+                                            <div className="space-y-1">
+                                                {tints.map((hex: any, i: number) => (
+                                                    <div key={i} className="flex h-10 group cursor-pointer" onClick={() => setColor(hex)}>
+                                                        <div className="w-20 bg-[var(--bg-primary)] flex items-center px-3 border-y border-l border-[var(--border-primary)] rounded-l-lg">
+                                                            <span className="text-[9px] font-black opacity-40">{(i + 1) * 100}</span>
+                                                        </div>
+                                                        <div className="flex-1 border-y border-r border-[var(--border-primary)] rounded-r-lg group-hover:scale-[1.02] transition-transform" style={{ backgroundColor: hex }} />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <p className="text-[9px] font-black uppercase text-[var(--text-muted)] tracking-widest px-2">Shades (Mix Black)</p>
+                                            <div className="space-y-1">
+                                                {shades.map((hex: any, i: number) => (
+                                                    <div key={i} className="flex h-10 group cursor-pointer" onClick={() => setColor(hex)}>
+                                                        <div className="w-20 bg-[var(--bg-primary)] flex items-center px-3 border-y border-l border-[var(--border-primary)] rounded-l-lg">
+                                                            <span className="text-[9px] font-black opacity-40">{(i + 1) * 100}</span>
+                                                        </div>
+                                                        <div className="flex-1 border-y border-r border-[var(--border-primary)] rounded-r-lg group-hover:scale-[1.02] transition-transform" style={{ backgroundColor: hex }} />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'gradient' && (
+                            <div className="p-8 glass rounded-[3rem] border border-[var(--border-primary)] space-y-8">
+                                <div className="flex items-center space-x-3">
+                                    <Box className="w-5 h-5 text-brand" />
+                                    <h3 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Gradient Synthesis</h3>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div
+                                        className="h-64 rounded-[2.5rem] shadow-2xl border-4 border-[var(--border-primary)]"
+                                        style={{ background: `linear-gradient(135deg, ${color}, ${c.harmonies('complementary')[1].toHex()})` }}
+                                    />
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="p-5 bg-[var(--bg-secondary)]/50 rounded-3xl border border-[var(--border-primary)] space-y-3">
+                                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">CSS Linear Gradient</p>
+                                            <div className="flex items-center justify-between">
+                                                <code className="text-[10px] font-mono font-bold text-brand truncate max-w-[200px]">linear-gradient(135deg, {color}, {c.harmonies('complementary')[1].toHex()})</code>
+                                                <button onClick={() => handleCopy(`background: linear-gradient(135deg, ${color}, ${c.harmonies('complementary')[1].toHex()});`)} className="p-2 text-[var(--text-muted)] hover:text-brand">
+                                                    <Copy className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="p-5 bg-[var(--bg-secondary)]/50 rounded-3xl border border-[var(--border-primary)] space-y-3">
+                                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Tailwind Utilities</p>
+                                            <div className="flex items-center justify-between">
+                                                <code className="text-[10px] font-mono font-bold text-brand">bg-gradient-to-br from-[{color}] to-[{c.harmonies('complementary')[1].toHex()}]</code>
+                                                <button onClick={() => handleCopy(`bg-gradient-to-br from-[${color}] to-[${c.harmonies('complementary')[1].toHex()}]`)} className="p-2 text-[var(--text-muted)] hover:text-brand">
+                                                    <Copy className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        )}
+
+                        {/* Global Dynamic Footer */}
+                        <div className="p-8 glass rounded-[3rem] border border-[var(--border-primary)] flex flex-col md:flex-row items-center justify-between gap-6 bg-[var(--bg-secondary)]/10">
+                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                                <button
+                                    onClick={exportTokens}
+                                    className="flex items-center space-x-2 px-6 py-3 brand-gradient text-white rounded-2xl text-[10px] font-black uppercase shadow-xl shadow-brand/20 hover:scale-105 active:scale-95 transition-all"
+                                >
+                                    <FileJson className="w-4 h-4" />
+                                    <span>Export Design Tokens</span>
+                                </button>
+                                <button
+                                    onClick={sharePalette}
+                                    className="flex items-center space-x-2 px-6 py-3 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-2xl text-[10px] font-black uppercase hover:bg-brand/10 hover:text-brand transition-all"
+                                >
+                                    <Share2 className="w-4 h-4" />
+                                    <span>Share Palette</span>
+                                </button>
+                            </div>
+
+                            <div className="flex items-center space-x-5">
+                                <div className="flex items-center space-x-2 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-60">
+                                    <Settings className="w-3.5 h-3.5" />
+                                    <span>Local Buffer Sync: OK</span>
+                                </div>
+                                <div className="h-4 w-px bg-[var(--border-primary)]" />
+                                <div className="flex items-center space-x-2">
+                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                    <span className="text-[9px] font-mono font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none">V2.5.0-P3</span>
+                                </div>
                             </div>
                         </div>
                     </div>

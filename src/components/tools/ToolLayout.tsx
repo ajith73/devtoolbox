@@ -37,12 +37,12 @@ export function ToolLayout({
 
     useEffect(() => {
         if (toolInfo) {
-            document.title = toolInfo.seoTitle || `${title} - DevBox Online`
             addToRecent(toolInfo.id)
-        } else {
-            document.title = `${title} - DevBox Online`
         }
     }, [title, toolInfo, addToRecent])
+
+    const seoTitle = toolInfo?.seoTitle || `${title} - DevBox Online`
+    const seoDescription = toolInfo?.description || description
 
     const handleCopy = () => {
         if (onCopy) {

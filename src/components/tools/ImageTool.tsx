@@ -3,7 +3,14 @@ import { ToolLayout } from './ToolLayout'
 import { ImageIcon, Upload, Maximize, Download, RefreshCcw, Monitor } from 'lucide-react'
 import Cropper from 'react-easy-crop'
 import imageCompression from 'browser-image-compression'
-import { cn } from '../../lib/utils'
+import { cn, copyToClipboard } from '../../lib/utils'
+
+interface Metadata {
+    width: number
+    height: number
+    size: number
+    exif?: any
+}
 
 export function ImageTool() {
     const [image, setImage] = useState<string | null>(null)
@@ -15,34 +22,66 @@ export function ImageTool() {
     const [processedImage, setProcessedImage] = useState<string | null>(null)
     const [processedSize, setProcessedSize] = useState<number>(0)
     const [quality, setQuality] = useState(0.8)
-    const [format, setFormat] = useState<'image/jpeg' | 'image/png' | 'image/webp'>('image/jpeg')
+    const [format, setFormat] = useState<'image/jpeg' | 'image/png' | 'image/webp' | 'image/avif'>('image/jpeg')
+    const [targetSizeKB, setTargetSizeKB] = useState(200)
+    const [isLossless, setIsLossless] = useState(false)
+    const [aspect, setAspect] = useState<number | undefined>(1)
+    const [rotation, setRotation] = useState(0)
+    const [showGrid, setShowGrid] = useState(false)
+    const [resizeWidth, setResizeWidth] = useState<number | null>(null)
+    const [resizeHeight, setResizeHeight] = useState<number | null>(null)
+    const [bgApiKey, setBgApiKey] = useState('')
+    const [metadata, setMetadata] = useState<Metadata | null>(null)
+    const [isBatch, setIsBatch] = useState(false)
+    const [base64Input, setBase64Input] = useState('')
+    const [urlInput, setUrlInput] = useState('')
+    const [error, setError] = useState<string | null>(null)
+    const [success, setSuccess] = useState<string | null>(null)
 
     const [isDragging, setIsDragging] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const onSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
+        const files = Array.from(e.target.files || [])
+
+        // Batch mode not yet implemented - only process single file
+        const file = files[0]
         if (file) {
             setOriginalFile(file)
             const reader = new FileReader()
             reader.onload = () => {
-                setImage(reader.result as string)
-                setProcessedImage(null)
+                const img = new Image()
+                img.src = reader.result as string
+                img.onload = () => {
+                    setMetadata({ width: img.width, height: img.height, size: file.size })
+                    setImage(reader.result as string)
+                    setProcessedImage(null)
+                }
             }
             reader.readAsDataURL(file)
         }
+
+        if (fileInputRef.current) fileInputRef.current.value = ''
     }
 
     const onDrop = (e: React.DragEvent) => {
         e.preventDefault()
         setIsDragging(false)
-        const file = e.dataTransfer.files?.[0]
+        const files = Array.from(e.dataTransfer.files || [])
+
+        // Batch mode not yet implemented - only process single file
+        const file = files[0]
         if (file) {
             setOriginalFile(file)
             const reader = new FileReader()
             reader.onload = () => {
-                setImage(reader.result as string)
-                setProcessedImage(null)
+                const img = new Image()
+                img.src = reader.result as string
+                img.onload = () => {
+                    setMetadata({ width: img.width, height: img.height, size: file.size })
+                    setImage(reader.result as string)
+                    setProcessedImage(null)
+                }
             }
             reader.readAsDataURL(file)
         }
@@ -57,8 +96,8 @@ export function ImageTool() {
         img.src = imageSrc
         await new Promise((resolve) => (img.onload = resolve))
 
-        const canvas = document.createElement('canvas')
-        const ctx = canvas.getContext('2d')
+        let canvas = document.createElement('canvas')
+        let ctx = canvas.getContext('2d')
         if (!ctx) return null
 
         canvas.width = pixelCrop.width
@@ -76,9 +115,23 @@ export function ImageTool() {
             pixelCrop.height
         )
 
-        return new Promise<Blob>((resolve) => {
+        // If resize is set, create a new canvas for resizing
+        if (resizeWidth && resizeHeight) {
+            const resizedCanvas = document.createElement('canvas')
+            const resizedCtx = resizedCanvas.getContext('2d')
+            if (!resizedCtx) return null
+
+            resizedCanvas.width = resizeWidth
+            resizedCanvas.height = resizeHeight
+
+            resizedCtx.drawImage(canvas, 0, 0, resizeWidth, resizeHeight)
+            canvas = resizedCanvas
+        }
+
+        return new Promise<Blob>((resolve, reject) => {
             canvas.toBlob((blob) => {
                 if (blob) resolve(blob)
+                else reject(new Error('Canvas toBlob failed'))
             }, format, quality)
         })
     }
@@ -93,10 +146,10 @@ export function ImageTool() {
             const file = new File([croppedBlob], `processed.${format.split('/')[1]}`, { type: format })
 
             const options = {
-                maxSizeMB: 2,
+                maxSizeMB: targetSizeKB / (1024 * 1024),
                 maxWidthOrHeight: 2560,
                 useWebWorker: true,
-                initialQuality: quality,
+                initialQuality: isLossless ? 1.0 : quality,
             }
 
             const compressedFile = await imageCompression(file, options)
@@ -122,6 +175,83 @@ export function ImageTool() {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
     }
 
+    const removeBackground = async (file: File) => {
+        if (!bgApiKey) {
+            setError('Please enter your remove.bg API key')
+            setTimeout(() => setError(null), 5000)
+            return
+        }
+        setLoading(true)
+        setError(null)
+        try {
+            const formData = new FormData()
+            formData.append('image_file', file)
+            formData.append('size', 'auto')
+
+            const response = await fetch('https://api.remove.bg/v1.0/removebg', {
+                method: 'POST',
+                headers: {
+                    'X-Api-Key': bgApiKey
+                },
+                body: formData
+            })
+
+            if (!response.ok) {
+                throw new Error('Background removal failed')
+            }
+
+            const blob = await response.blob()
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                setProcessedImage(reader.result as string)
+                setProcessedSize(blob.size)
+                setLoading(false)
+            }
+            reader.readAsDataURL(blob)
+        } catch (error) {
+            console.error(error)
+            setError('Background removal failed. Check your API key.')
+            setTimeout(() => setError(null), 5000)
+            setLoading(false)
+        }
+    }
+
+    const loadFromBase64 = () => {
+        if (base64Input) {
+            setImage(`data:image/jpeg;base64,${base64Input}`)
+            setOriginalFile(null)
+            setProcessedImage(null)
+            setMetadata(null)
+        }
+    }
+
+    const copyBase64 = () => {
+        if (image) {
+            const base64 = image.split(',')[1]
+            copyToClipboard(base64)
+        }
+    }
+
+    const loadFromUrl = async () => {
+        if (urlInput) {
+            try {
+                const response = await fetch(urlInput)
+                const blob = await response.blob()
+                const reader = new FileReader()
+                reader.onload = () => {
+                    setImage(reader.result as string)
+                    setOriginalFile(null)
+                    setProcessedImage(null)
+                    setMetadata(null)
+                }
+                reader.readAsDataURL(blob)
+            } catch (error) {
+                setError('Failed to load image from URL')
+                setTimeout(() => setError(null), 5000)
+            }
+        }
+    }
+
     return (
         <ToolLayout
             title="Image Master Elite"
@@ -133,6 +263,25 @@ export function ImageTool() {
                 setOriginalFile(null)
             }}
         >
+            {/* Error and Success Notifications */}
+            {error && (
+                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center space-x-3 animate-fade-in">
+                    <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-xs font-bold">!</span>
+                    </div>
+                    <p className="text-red-400 text-sm font-medium">{error}</p>
+                </div>
+            )}
+            
+            {success && (
+                <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center space-x-3 animate-fade-in">
+                    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-xs font-bold">✓</span>
+                    </div>
+                    <p className="text-green-400 text-sm font-medium">{success}</p>
+                </div>
+            )}
+
             <div className="space-y-8 text-[var(--text-primary)]">
                 {!image ? (
                     <div
@@ -153,7 +302,7 @@ export function ImageTool() {
                             <p className="text-2xl font-black tracking-tight text-[var(--text-primary)]">Surrender your pixels</p>
                             <p className="text-[10px] text-[var(--text-muted)] mt-1 uppercase tracking-[0.3em] font-black">Drag & Drop or Click to browse</p>
                         </div>
-                        <input type="file" ref={fileInputRef} accept="image/*" onChange={onSelectFile} className="hidden" />
+                        <input type="file" ref={fileInputRef} accept="image/*" multiple={isBatch} onChange={onSelectFile} className="hidden" />
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -164,10 +313,13 @@ export function ImageTool() {
                                         image={image || undefined}
                                         crop={crop}
                                         zoom={zoom}
-                                        aspect={1}
+                                        aspect={aspect}
+                                        rotation={rotation}
+                                        showGrid={showGrid}
                                         onCropChange={setCrop}
                                         onCropComplete={onCropComplete}
                                         onZoomChange={setZoom}
+                                        onRotationChange={setRotation}
                                     />
                                 ) : (
                                     <div className="absolute inset-0 flex flex-col items-center justify-center p-12 bg-black/40 backdrop-blur-sm">
@@ -198,10 +350,65 @@ export function ImageTool() {
                                     </div>
                                     <input
                                         type="range" min={0.1} max={1} step={0.05} value={quality}
-                                        disabled={!!processedImage}
+                                        disabled={isLossless || !!processedImage}
                                         onChange={(e) => setQuality(Number(e.target.value))}
                                         className="w-full h-1.5 bg-[var(--border-primary)] rounded-full appearance-none cursor-pointer accent-purple-500"
                                     />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="p-6 glass rounded-[2rem] border-[var(--border-primary)] space-y-3">
+                                    <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">
+                                        <span>Aspect Ratio</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        {[
+                                            { label: '1:1', value: 1 },
+                                            { label: '16:9', value: 16 / 9 },
+                                            { label: '4:5', value: 4 / 5 },
+                                            { label: 'Free', value: undefined }
+                                        ].map((ratio) => (
+                                            <button
+                                                key={ratio.label}
+                                                onClick={() => setAspect(ratio.value)}
+                                                disabled={!!processedImage}
+                                                className={cn(
+                                                    "px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all",
+                                                    aspect === ratio.value ? "brand-gradient text-white shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-primary)]"
+                                                )}
+                                            >
+                                                {ratio.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="p-6 glass rounded-[2rem] border-[var(--border-primary)] space-y-3">
+                                    <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">
+                                        <span>Rotation</span>
+                                        <span className="text-brand">{rotation}°</span>
+                                    </div>
+                                    <input
+                                        type="range" min={0} max={360} step={1} value={rotation}
+                                        disabled={!!processedImage}
+                                        onChange={(e) => setRotation(Number(e.target.value))}
+                                        className="w-full h-1.5 bg-[var(--border-primary)] rounded-full appearance-none cursor-pointer accent-green-500"
+                                    />
+                                </div>
+                                <div className="p-6 glass rounded-[2rem] border-[var(--border-primary)] space-y-3">
+                                    <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">
+                                        <span>Grid Overlay</span>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowGrid(!showGrid)}
+                                        disabled={!!processedImage}
+                                        className={cn(
+                                            "w-full px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all",
+                                            showGrid ? "brand-gradient text-white shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-primary)]"
+                                        )}
+                                    >
+                                        {showGrid ? 'ON' : 'OFF'}
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -216,9 +423,78 @@ export function ImageTool() {
                                     <p className="text-xs text-[var(--text-secondary)] leading-relaxed italic">Fine-tune your crop mask and adjust the quality slider for the perfect balance.</p>
                                 </div>
 
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Batch Mode</label>
+                                    <button
+                                        onClick={() => setIsBatch(!isBatch)}
+                                        className={cn(
+                                            "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all",
+                                            isBatch ? "brand-gradient text-white shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-primary)]"
+                                        )}
+                                    >
+                                        {isBatch ? 'ON' : 'OFF'}
+                                    </button>
+                                </div>
+
                                 <div className="space-y-4">
-                                    <div className="grid grid-cols-3 gap-3">
-                                        {(['image/jpeg', 'image/png', 'image/webp'] as const).map((f) => (
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">
+                                            <span>Target File Size</span>
+                                            <span className="text-brand">{targetSizeKB}KB</span>
+                                        </div>
+                                        <input
+                                            type="range" min={10} max={1000} step={10} value={targetSizeKB}
+                                            disabled={!!processedImage}
+                                            onChange={(e) => setTargetSizeKB(Number(e.target.value))}
+                                            className="w-full h-1.5 bg-[var(--border-primary)] rounded-full appearance-none cursor-pointer accent-brand"
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">Lossless Mode</label>
+                                        <button
+                                            onClick={() => setIsLossless(!isLossless)}
+                                            disabled={!!processedImage}
+                                            className={cn(
+                                                "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all",
+                                                isLossless ? "brand-gradient text-white shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-primary)]"
+                                            )}
+                                        >
+                                            {isLossless ? 'ON' : 'OFF'}
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Resize Presets</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {[
+                                                { name: 'Profile Photo', w: 400, h: 400 },
+                                                { name: 'Thumbnail', w: 150, h: 150 },
+                                                { name: 'Banner', w: 1200, h: 628 },
+                                                { name: 'Instagram Post', w: 1080, h: 1080 },
+                                                { name: 'LinkedIn Cover', w: 1584, h: 396 },
+                                                { name: 'No Resize', w: null, h: null }
+                                            ].map((preset) => (
+                                                <button
+                                                    key={preset.name}
+                                                    onClick={() => {
+                                                        setResizeWidth(preset.w)
+                                                        setResizeHeight(preset.h)
+                                                    }}
+                                                    disabled={!!processedImage}
+                                                    className={cn(
+                                                        "px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border",
+                                                        (resizeWidth === preset.w && resizeHeight === preset.h) ? "bg-brand/10 border-brand text-brand shadow-sm" : "bg-[var(--bg-primary)] border-[var(--border-primary)] text-[var(--text-muted)] hover:text-brand hover:bg-brand/5"
+                                                    )}
+                                                >
+                                                    {preset.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {(['image/jpeg', 'image/png', 'image/webp', 'image/avif'] as const).map((f) => (
                                             <button
                                                 key={f}
                                                 onClick={() => setFormat(f)}
@@ -233,6 +509,51 @@ export function ImageTool() {
                                                 {f.split('/')[1]}
                                             </button>
                                         ))}
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Background Removal (AI)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Enter remove.bg API key"
+                                            value={bgApiKey}
+                                            onChange={(e) => setBgApiKey(e.target.value)}
+                                            className="w-full text-xs py-2 px-3 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-lg"
+                                        />
+                                        <button
+                                            onClick={() => originalFile && removeBackground(originalFile)}
+                                            disabled={loading || !originalFile}
+                                            className="w-full flex items-center justify-center space-x-3 p-3 bg-purple-500 text-white rounded-[1.5rem] transition-all font-black uppercase text-xs tracking-widest shadow-xl hover:bg-purple-600 disabled:opacity-50"
+                                        >
+                                            {loading ? <RefreshCcw className="w-4 h-4 animate-spin" /> : 'Remove Background'}
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Base64 Converter</label>
+                                        <textarea
+                                            value={base64Input}
+                                            onChange={(e) => setBase64Input(e.target.value)}
+                                            placeholder="Paste Base64 string here"
+                                            className="w-full text-xs py-2 px-3 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-lg"
+                                            rows={3}
+                                        />
+                                        <div className="flex gap-2">
+                                            <button onClick={loadFromBase64} className="flex-1 px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs font-black uppercase tracking-wider hover:bg-brand/5">Load Image</button>
+                                            <button onClick={copyBase64} className="flex-1 px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs font-black uppercase tracking-wider hover:bg-brand/5">Copy Base64</button>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Image URL Loader</label>
+                                        <input
+                                            type="text"
+                                            value={urlInput}
+                                            onChange={(e) => setUrlInput(e.target.value)}
+                                            placeholder="https://example.com/image.png"
+                                            className="w-full text-xs py-2 px-3 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-lg"
+                                        />
+                                        <button onClick={loadFromUrl} className="w-full px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg text-xs font-black uppercase tracking-wider hover:bg-brand/5">Load Image</button>
                                     </div>
 
                                     {!processedImage ? (
@@ -290,6 +611,20 @@ export function ImageTool() {
                                                     </span>
                                                 </div>
                                             )}
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs text-[var(--text-secondary)]">Dimensions</span>
+                                                <span className="text-xs font-mono font-bold text-[var(--text-primary)]">{metadata ? `${metadata.width} x ${metadata.height}` : '--'}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between pt-3 border-t border-[var(--border-primary)]">
+                                                <button onClick={() => {
+                                                    setSuccess(`EXIF data: ${JSON.stringify(metadata?.exif || 'No EXIF data available')}`)
+                                                    setTimeout(() => setSuccess(null), 10000)
+                                                }} className="text-[10px] font-black text-purple-500 uppercase tracking-widest">View EXIF</button>
+                                                <button onClick={() => {
+                                                    setSuccess('Metadata is automatically removed when processing images.')
+                                                    setTimeout(() => setSuccess(null), 5000)
+                                                }} className="text-[10px] font-black text-red-500 uppercase tracking-widest">Remove Metadata</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
