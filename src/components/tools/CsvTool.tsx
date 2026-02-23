@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { ToolLayout } from './ToolLayout'
-import { FileJson, Upload, FileCode, CheckCircle2, AlertCircle, Download, Copy, Settings, Filter, ArrowRightLeft, Database } from 'lucide-react'
+import { FileJson, Upload, CheckCircle2, AlertCircle, Download, Copy, Settings, Database } from 'lucide-react'
 import Papa from 'papaparse'
-import { copyToClipboard, cn } from '../../lib/utils'
+import { copyToClipboard } from '../../lib/utils'
 import { usePersistentState } from '../../lib/storage'
 
 type CaseMode = 'none' | 'camel' | 'snake' | 'kebab' | 'pascal' | 'upper' | 'lower'
@@ -13,7 +13,7 @@ export function CsvTool() {
     const [delimiter, setDelimiter] = usePersistentState('csv_delimiter', '')
     const [header, setHeader] = usePersistentState('csv_header', true)
     const [dynamicTyping, setDynamicTyping] = usePersistentState('csv_dynamic_typing', true)
-    const [skipEmptyLines, setSkipEmptyLines] = usePersistentState('csv_skip_empty', true)
+    const [skipEmptyLines] = usePersistentState('csv_skip_empty', true)
     const [caseMode, setCaseMode] = usePersistentState<CaseMode>('csv_case_mode', 'none')
     const [outputFormat, setOutputFormat] = usePersistentState<OutputFormat>('csv_output_format', 'array-of-objects')
     const [keyColumn, setKeyColumn] = usePersistentState('csv_key_column', '')
@@ -21,7 +21,6 @@ export function CsvTool() {
     const [treatEmptyAsNull, setTreatEmptyAsNull] = usePersistentState('csv_empty_null', false)
 
     const [fileName, setFileName] = useState<string | null>(null)
-    const [isDragging, setIsDragging] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const transformKey = (key: string, mode: CaseMode): string => {
@@ -63,7 +62,6 @@ export function CsvTool() {
             }
 
             let data = results.data as any[]
-            const columns = results.meta.fields || []
 
             // Handle transformations
             if (treatEmptyAsNull) {
@@ -142,7 +140,6 @@ export function CsvTool() {
 
     const onDrop = (e: React.DragEvent) => {
         e.preventDefault()
-        setIsDragging(false)
         const file = e.dataTransfer.files?.[0]
         if (file && (file.name.endsWith('.csv') || file.name.endsWith('.tsv') || file.type === 'text/csv')) {
             handleFile(file)
@@ -173,8 +170,8 @@ export function CsvTool() {
             onDownload={computed.output ? handleDownload : undefined}
         >
             <div
-                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                onDragLeave={() => setIsDragging(false)}
+                onDragOver={(e) => { e.preventDefault(); }}
+                onDragLeave={() => { }}
                 onDrop={onDrop}
                 className="space-y-6 text-[var(--text-primary)]"
             >

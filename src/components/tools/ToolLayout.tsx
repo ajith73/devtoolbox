@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Copy, Download, RefreshCcw, Check, ArrowLeft, HelpCircle, Zap } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { cn } from '../../lib/utils'
@@ -40,10 +40,6 @@ export function ToolLayout({
             addToRecent(toolInfo.id)
         }
     }, [title, toolInfo, addToRecent])
-
-    const seoTitle = toolInfo?.seoTitle || `${title} - DevBox Online`
-    const seoDescription = toolInfo?.description || description
-
     const handleCopy = () => {
         if (onCopy) {
             onCopy()
