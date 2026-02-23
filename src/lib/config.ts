@@ -31,7 +31,8 @@ import {
     BookOpen,
     Dices,
     Cloud,
-    Languages
+    Languages,
+    Network
 } from 'lucide-react'
 
 export type Category = 'dev' | 'media' | 'data' | 'util' | 'text'
@@ -107,36 +108,36 @@ export const TOOLS: Tool[] = [
     },
     {
         id: 'tokens',
-        name: 'Token Gen',
-        description: 'Generate UUIDs and random secure tokens.',
+        name: 'Token Generator',
+        description: 'Generate secure tokens, UUIDs (v4/v7), API keys, and random strings with customized entropy.',
         icon: Fingerprint,
         color: 'text-pink-400',
         path: '/tokens',
         category: 'util',
         seoTitle: 'Random Token Generator - UUID & Secure Keys',
-        howToUse: 'Select the type of token you need (UUID v4, Random Hex, etc.). Click "Generate" to create a fresh secure string. You can copy the result directly to your clipboard.'
+        howToUse: 'Select the type of token you need (UUID v4, UUID v7, NanoID, Random Hex, etc.). Click "Generate" to create single or bulk secure strings.'
     },
     {
         id: 'jwt',
-        name: 'JWT Decoder',
-        description: 'Decode header, payload and verify token expiry.',
+        name: 'JWT Tool',
+        description: 'Decode, verify signatures (HS256/RS256), and generate JSON Web Tokens locally.',
         icon: FileCode,
         color: 'text-yellow-400',
         path: '/jwt',
         category: 'dev',
-        seoTitle: 'JWT Decoder Online - Inspect JWT Header & Payload',
-        howToUse: 'Paste an encoded JSON Web Token into the input. The tool will instantly parse the Header and Payload sections and show you the expiration status without sending data anywhere.'
+        seoTitle: 'JWT Decoder & Generator Online - HS256/RS256 Verification',
+        howToUse: 'Paste an encoded JWT in Decode mode to inspect header/payload. Use Generate mode to create new tokens with a payload and secret.'
     },
     {
         id: 'timestamp',
         name: 'Timestamp Tool',
-        description: 'Convert Unix timestamps to readable dates and vice-versa.',
+        description: 'Advanced Unix timestamp converter with sub-second precision (ms, μs, ns) and temporal history.',
         icon: Clock,
         color: 'text-indigo-400',
         path: '/timestamp',
         category: 'util',
-        seoTitle: 'Unix Timestamp Converter - Epoch to Human Readable',
-        howToUse: 'Enter a numeric Unix timestamp to get a human-readable date, or enter a date string to get the corresponding Epoch timestamp.'
+        seoTitle: 'Advanced Timestamp Converter - Unix, ISO 8601, and Sub-second Precision',
+        howToUse: 'Convert between Unix timestamps and ISO dates. Supports seconds, milliseconds, microseconds, and nanoseconds with a real-time temporal sync.'
     },
     {
         id: 'regex',
@@ -173,36 +174,36 @@ export const TOOLS: Tool[] = [
     },
     {
         id: 'password',
-        name: 'Pass Generator',
-        description: 'Generate customizable secure passwords.',
+        name: 'Password Toolkit (Pro)',
+        description: 'Secure generator with entropy analysis, passphrase mode, and breach checking.',
         icon: ShieldCheck,
         color: 'text-lime-400',
         path: '/password',
         category: 'util',
-        seoTitle: 'Secure Password Generator - Strong Random Passwords',
-        howToUse: 'Adjust the length and character types (uppercase, numbers, symbols). Click "Generate" to receive a crypthographically secure password.'
+        seoTitle: 'Professional Password Toolkit - Secure Generation & Audit',
+        howToUse: 'Generate secure passwords using Standard, Passphrase, or Pattern modes. Includes entropy calculation and HIBP breach auditing.'
     },
     {
         id: 'url',
-        name: 'URL Encoder',
-        description: 'Safely encode or decode URL components.',
-        icon: Link,
-        color: 'text-gray-400',
+        name: 'URL Tool (Pro)',
+        description: 'Professional encoder, decoder, and structural parser with security auditing.',
+        icon: Globe,
+        color: 'text-indigo-400',
         path: '/url',
         category: 'dev',
-        seoTitle: 'URL Encoder & Decoder Online - Safe URL Formatting',
-        howToUse: 'Paste your URL or components into the text area. Choose "Encode" to make the URL safe for transport, or "Decode" to see the original characters.'
+        seoTitle: 'Professional URL Tool - Encoder, Decoder & structural Parser',
+        howToUse: 'Use Standard mode for segmented encoding, Parser mode for structural editing, or Bulk mode for mass transformations.'
     },
     {
         id: 'color',
-        name: 'Color Converter',
-        description: 'Convert between HEX, RGB and HSL formats.',
+        name: 'Color Toolkit (Pro)',
+        description: 'Professional converter with WCAG audit, palette synthesis, and vision simulation.',
         icon: Palette,
         color: 'text-rose-400',
         path: '/color',
         category: 'media',
-        seoTitle: 'Online Color Converter - HEX, RGB & HSL',
-        howToUse: 'Input a color code in any common format. The tool will calculate and display equivalent codes in HEX, RGB, and HSL, along with a visual color preview.'
+        seoTitle: 'Professional Color Converter & Contrast Toolkit - WCAG & Palettes',
+        howToUse: 'Pick a color to instantly view 8+ formats. Use the Accessibility tab for WCAG audits, Palette for design scales, and Gradient for CSS generation.'
     },
     {
         id: 'diff',
@@ -258,6 +259,17 @@ export const TOOLS: Tool[] = [
         category: 'dev',
         seoTitle: 'CSS Cubic Bezier Generator - Animation Easing Tool',
         howToUse: 'Adjust the bezier curve coordinates manually or select a preset. Watch the animation previews to feel the "bounce" and "snap" effect, then copy the CSS function.'
+    },
+    {
+        id: 'architecture',
+        name: 'Architecture Diagram Creator',
+        description: 'Create project architecture diagrams using Mermaid syntax.',
+        icon: Network,
+        color: 'text-indigo-500',
+        path: '/architecture',
+        category: 'dev',
+        seoTitle: 'Architecture Diagram Creator - Mermaid Diagrams for Projects',
+        howToUse: 'Enter Mermaid syntax in the left panel to create flowcharts and architecture diagrams. The preview updates in real-time as you type.'
     },
     {
         id: 'text',
@@ -730,17 +742,6 @@ export const TOOLS: Tool[] = [
         path: '/json-yaml',
         category: 'data',
         seoTitle: 'JSON to YAML / YAML to JSON Converter',
-        howToUse: 'Switch direction, paste input, and copy the output.'
-    },
-    {
-        id: 'csv-json',
-        name: 'CSV ↔ JSON',
-        description: 'Convert CSV data to JSON arrays and JSON arrays back to CSV.',
-        icon: FileJson,
-        color: 'text-sky-400',
-        path: '/csv-json',
-        category: 'data',
-        seoTitle: 'CSV to JSON / JSON to CSV Converter',
         howToUse: 'Switch direction, paste input, and copy the output.'
     },
     {

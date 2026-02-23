@@ -173,6 +173,12 @@ input::placeholder {
   color: var(--text-muted);
 }
 
+option {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  padding: 8px;
+}
+
 button {
   @apply cursor-pointer outline-none;
 }

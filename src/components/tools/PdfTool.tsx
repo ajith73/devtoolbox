@@ -21,6 +21,7 @@ export function PdfTool() {
     const [activeMode, setActiveMode] = useState<'merge' | 'convert' | 'split' | 'pdf-to-img'>('merge')
     const [files, setFiles] = useState<FileItem[]>([])
     const [isProcessing, setIsProcessing] = useState(false)
+    const [error, setError] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,7 +29,8 @@ export function PdfTool() {
 
         // Single file check for split and pdf-to-img
         if ((activeMode === 'split' || activeMode === 'pdf-to-img') && (files.length > 0 || selectedFiles.length > 1)) {
-            alert('This mode only supports processing one file at a time.')
+            setError('This mode only supports processing one file at a time.')
+            setTimeout(() => setError(null), 5000)
             return
         }
         const newItems: FileItem[] = selectedFiles.map(file => ({
@@ -131,7 +133,8 @@ export function PdfTool() {
             downloadFile(content, 'pdf_images.zip', 'application/zip')
         } catch (error) {
             console.error('PDF to Image error:', error)
-            alert('Failed to convert PDF. Ensure the file is not password protected.')
+            setError('Failed to convert PDF. Ensure the file is not password protected.')
+            setTimeout(() => setError(null), 5000)
         } finally {
             setIsProcessing(false)
         }
@@ -196,6 +199,16 @@ export function PdfTool() {
             icon={FileStack}
             onReset={() => setFiles([])}
         >
+            {/* Error Notification */}
+            {error && (
+                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center space-x-3 animate-fade-in">
+                    <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-xs font-bold">!</span>
+                    </div>
+                    <p className="text-red-400 text-sm font-medium">{error}</p>
+                </div>
+            )}
+
             <div className="space-y-8">
                 {/* Mode Selector */}
                 <div className="flex items-center justify-center space-x-4 p-1.5 glass rounded-2xl md:rounded-3xl bg-[var(--bg-secondary)] border-[var(--border-primary)] w-fit mx-auto mb-2 overflow-hidden shadow-lg flex-wrap gap-y-2">

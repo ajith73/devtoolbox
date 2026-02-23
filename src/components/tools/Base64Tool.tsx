@@ -5,6 +5,7 @@ import { copyToClipboard, cn } from '../../lib/utils'
 import { usePersistentState } from '../../lib/storage'
 
 export function Base64Tool() {
+    console.log('Base64Tool rendering')
     const [inputText, setInputText] = usePersistentState('base64_input', '')
     const [outputText, setOutputText] = useState('')
     const [error, setError] = useState<string | null>(null)
@@ -12,6 +13,12 @@ export function Base64Tool() {
     const [fileName, setFileName] = useState<string | null>(null)
     const [fileType, setFileType] = useState<string | null>(null)
     const [isDragging, setIsDragging] = useState(false)
+    const [detectedType, setDetectedType] = useState<'text' | 'image' | 'file' | 'json' | 'jwt' | null>(null)
+    const [includePrefix, setIncludePrefix] = useState(true)
+    const [originalSize, setOriginalSize] = useState<number | null>(null)
+    const [encodedSize, setEncodedSize] = useState<number | null>(null)
+    const [urlSafe, setUrlSafe] = useState(false)
+    const [decodedContent, setDecodedContent] = useState<string>('')
 
     useEffect(() => {
         if (inputText && !inputText.startsWith('[Binary Data:')) {
@@ -19,23 +26,98 @@ export function Base64Tool() {
         }
     }, [])
 
+    const encodeBase64 = (str: string) => {
+        const encoded = btoa(str)
+        return urlSafe ? encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '') : encoded
+    }
+
+    const decodeBase64 = (str: string) => {
+        let padded = str
+        if (urlSafe) {
+            padded = str.replace(/-/g, '+').replace(/_/g, '/')
+            while (padded.length % 4) padded += '='
+        }
+        return atob(padded)
+    }
+
+    const detectType = (val: string, decoded: string): typeof detectedType => {
+        if (decoded.startsWith('{') || decoded.startsWith('[')) {
+            try {
+                JSON.parse(decoded)
+                return 'json'
+            } catch {}
+        }
+        if (val.includes('.') && val.split('.').length === 3) {
+            try {
+                const parts = val.split('.')
+                if (parts.length === 3) {
+                    const payload = decodeBase64(parts[1])
+                    JSON.parse(payload)
+                    return 'jwt'
+                }
+            } catch {}
+        }
+        if (decoded.length > 100 && /^[A-Za-z0-9+/=]+$/.test(val)) {
+            return 'image'
+        }
+        return 'text'
+    }
+
     const processText = (val: string, currentMode: 'encode' | 'decode') => {
         if (!val) {
             setOutputText('')
             setError(null)
+            setDetectedType(null)
+            setOriginalSize(null)
+            setEncodedSize(null)
+            setDecodedContent('')
             return
         }
         try {
             if (currentMode === 'encode') {
-                setOutputText(btoa(val))
+                const encoded = encodeBase64(val)
+                setOriginalSize(val.length)
+                setEncodedSize(encoded.length)
+                let output = encoded
+                if (includePrefix) {
+                    let mime = 'text/plain'
+                    if (fileType) mime = fileType
+                    else if (detectedType === 'json') mime = 'application/json'
+                    output = `data:${mime};base64,${encoded}`
+                }
+                setOutputText(output)
+                setError(null)
+                setDecodedContent('')
             } else {
-                setOutputText(atob(val))
+                const decoded = decodeBase64(val)
+                setDecodedContent(decoded)
+                setOriginalSize(decoded.length)
+                setEncodedSize(val.length)
+                const type = detectType(val, decoded)
+                setDetectedType(type)
+                let output = decoded
+                if (type === 'json') {
+                    output = JSON.stringify(JSON.parse(decoded), null, 2)
+                } else if (type === 'jwt') {
+                    const parts = val.split('.')
+                    if (parts.length === 3) {
+                        const payload = decodeBase64(parts[1])
+                        output = JSON.stringify(JSON.parse(payload), null, 2)
+                    }
+                } else if (type === 'image') {
+                    output = `data:image/png;base64,${val}`  // assume png
+                }
+                setOutputText(output)
+                setError(null)
             }
-            setError(null)
             setFileName(null)
         } catch (e: any) {
-            setError('Invalid input for ' + currentMode)
+            setError(currentMode === 'encode' ? 'Encoding failed' : 'Invalid input for decode')
             setOutputText('')
+            setDetectedType(null)
+            setOriginalSize(null)
+            setEncodedSize(null)
+            setDecodedContent('')
         }
     }
 
@@ -43,6 +125,20 @@ export function Base64Tool() {
         const newMode = mode === 'encode' ? 'decode' : 'encode'
         setMode(newMode)
         processText(inputText, newMode)
+    }
+
+    const copyBase64 = () => {
+        const base64 = mode === 'encode' ? outputText : inputText
+        copyToClipboard(base64)
+    }
+
+    const copyDecoded = () => {
+        copyToClipboard(decodedContent || outputText)
+    }
+
+    const copyDataUrl = () => {
+        const dataUrl = includePrefix && mode === 'encode' ? outputText : `data:text/plain;base64,${outputText}`
+        copyToClipboard(dataUrl)
     }
 
     const handleFile = (file: File) => {
@@ -144,6 +240,33 @@ export function Base64Tool() {
                         </button>
                     </div>
 
+                    <div className="flex items-center space-x-4">
+                        <label className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">
+                            <input
+                                type="checkbox"
+                                checked={urlSafe}
+                                onChange={(e) => {
+                                    setUrlSafe(e.target.checked)
+                                    processText(inputText, mode)
+                                }}
+                                className="w-4 h-4"
+                            />
+                            URL-safe
+                        </label>
+                        <label className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">
+                            <input
+                                type="checkbox"
+                                checked={includePrefix}
+                                onChange={(e) => {
+                                    setIncludePrefix(e.target.checked)
+                                    if (mode === 'encode') processText(inputText, mode)
+                                }}
+                                className="w-4 h-4"
+                            />
+                            Data prefix
+                        </label>
+                    </div>
+
                     <div className="flex items-center space-x-4 w-full md:w-auto">
                         <label className="flex-1 md:flex-initial flex items-center justify-center space-x-3 px-8 py-3 glass rounded-2xl border-dashed border-[var(--border-primary)] cursor-pointer bg-[var(--bg-primary)] hover:bg-brand/5 hover:border-brand/40 transition-all group shadow-sm">
                             <Upload className="w-4 h-4 text-brand group-hover:scale-110 transition-transform" />
@@ -200,17 +323,31 @@ export function Base64Tool() {
                                 </div>
                             ) : (
                                 <div className="absolute inset-0 p-8 overflow-hidden flex flex-col">
-                                    <pre className="flex-1 text-[var(--text-primary)] font-mono text-xs overflow-auto custom-scrollbar whitespace-pre-wrap break-all focus:outline-none opacity-90" tabIndex={0}>
-                                        {outputText || <span className="text-[var(--text-muted)] opacity-30 italic">Resulting payload will manifest here...</span>}
-                                    </pre>
+                                    {detectedType === 'image' && mode === 'decode' ? (
+                                        <div className="flex-1 flex items-center justify-center">
+                                            <img src={outputText} alt="Decoded image" className="max-w-full max-h-full object-contain rounded-lg" />
+                                        </div>
+                                    ) : (
+                                        <pre className="flex-1 text-[var(--text-primary)] font-mono text-xs overflow-auto custom-scrollbar whitespace-pre-wrap break-all focus:outline-none opacity-90" tabIndex={0}>
+                                            {outputText || <span className="text-[var(--text-muted)] opacity-30 italic">Resulting payload will manifest here...</span>}
+                                        </pre>
+                                    )}
 
-                                    {outputText && mode === 'encode' && outputText.length > 50 && (
+                                    {outputText && (
                                         <div className="mt-6 pt-6 border-t border-[var(--border-primary)] flex items-center justify-between text-[10px] text-[var(--text-muted)] font-black uppercase tracking-[0.2em]">
-                                            <span>Payload Delta: {outputText.length} Bits</span>
+                                            <span>Size: {originalSize} → {encodedSize} ({mode === 'encode' ? '+' : '-'} {originalSize && encodedSize ? Math.round(Math.abs((encodedSize - originalSize) / originalSize * 100)) : 0}%)</span>
                                             <div className="flex items-center space-x-6">
-                                                <button onClick={() => copyToClipboard(outputText)} className="flex items-center hover:text-brand transition-all hover:scale-105">
+                                                <button onClick={copyBase64} className="flex items-center hover:text-brand transition-all hover:scale-105">
                                                     <CheckCircle2 className="w-3.5 h-3.5 mr-2" />
-                                                    Snapshot Hash
+                                                    Copy Base64
+                                                </button>
+                                                <button onClick={copyDecoded} className="flex items-center hover:text-brand transition-all hover:scale-105">
+                                                    <CheckCircle2 className="w-3.5 h-3.5 mr-2" />
+                                                    Copy Decoded
+                                                </button>
+                                                <button onClick={copyDataUrl} className="flex items-center hover:text-brand transition-all hover:scale-105">
+                                                    <CheckCircle2 className="w-3.5 h-3.5 mr-2" />
+                                                    Copy Data URL
                                                 </button>
                                             </div>
                                         </div>
@@ -221,14 +358,14 @@ export function Base64Tool() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div className="p-6 glass rounded-[2rem] border-[var(--border-primary)] flex items-center space-x-5 shadow-sm bg-[var(--bg-secondary)]/30">
                         <div className="w-12 h-12 rounded-[1.25rem] bg-blue-500/10 flex items-center justify-center shrink-0 border border-blue-500/20">
                             <Type className="w-6 h-6 text-blue-500" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Entity Engine</p>
-                            <p className="text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">{fileName ? 'Binary Protocol' : 'Textual Frame'}</p>
+                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Detected Type</p>
+                            <p className="text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">{detectedType || 'text'}</p>
                         </div>
                     </div>
                     <div className="p-6 glass rounded-[2rem] border-[var(--border-primary)] flex items-center space-x-5 shadow-sm bg-[var(--bg-secondary)]/30">
@@ -236,8 +373,8 @@ export function Base64Tool() {
                             <Eye className="w-6 h-6 text-purple-500" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Visual Integrity</p>
-                            <p className="text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">UTF-8 Compliant</p>
+                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Original Size</p>
+                            <p className="text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">{originalSize ? `${originalSize} bytes` : 'N/A'}</p>
                         </div>
                     </div>
                     <div className="p-6 glass rounded-[2rem] border-[var(--border-primary)] flex items-center space-x-5 shadow-sm bg-[var(--bg-secondary)]/30">
@@ -245,8 +382,17 @@ export function Base64Tool() {
                             <Download className="w-6 h-6 text-green-500" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Cloud Sandbox</p>
-                            <p className="text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">Client-Only Logic</p>
+                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Encoded Size</p>
+                            <p className="text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">{encodedSize ? `${encodedSize} bytes` : 'N/A'}</p>
+                        </div>
+                    </div>
+                    <div className="p-6 glass rounded-[2rem] border-[var(--border-primary)] flex items-center space-x-5 shadow-sm bg-[var(--bg-secondary)]/30">
+                        <div className="w-12 h-12 rounded-[1.25rem] bg-orange-500/10 flex items-center justify-center shrink-0 border border-orange-500/20">
+                            <ArrowRightLeft className="w-6 h-6 text-orange-500" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Size Change</p>
+                            <p className="text-xs font-black uppercase tracking-tight text-[var(--text-primary)]">{originalSize && encodedSize ? `${mode === 'encode' ? '+' : '-'}${Math.round(Math.abs((encodedSize - originalSize) / originalSize * 100))}%` : 'N/A'}</p>
                         </div>
                     </div>
                 </div>
