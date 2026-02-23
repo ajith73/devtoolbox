@@ -12,7 +12,7 @@ export function SqlTool() {
     const [keywordCase, setKeywordCase] = useState<'upper' | 'lower' | 'preserve'>('upper')
     const [tabWidth, setTabWidth] = useState(2)
     const [commaStyle, setCommaStyle] = useState<'trailing' | 'leading'>('trailing')
-    const [alignColumns, setAlignColumns] = useState(false)
+    const [alignColumns] = useState(false)
     const [minifyMode, setMinifyMode] = useState(false)
     const [savedQueries, setSavedQueries] = usePersistentState('sql_saved_queries', [] as string[])
     const [validationErrors, setValidationErrors] = useState<string[]>([])
@@ -36,25 +36,17 @@ export function SqlTool() {
         }
     }
 
-    const handleLoadQuery = (query: string) => {
-        setInput(query)
-    }
-
-    const handleDeleteQuery = (index: number) => {
-        setSavedQueries(savedQueries.filter((_, i) => i !== index))
-    }
-
     const explainQuery = (sql: string) => {
         const lowerSql = sql.toLowerCase().trim()
-        
+
         // Simple SELECT explanation
         if (lowerSql.startsWith('select')) {
             const match = lowerSql.match(/select\s+(.+)\s+from\s+(.+?)(?:\s+where\s+(.+))?/i)
             if (match) {
-                const columns = match[2] ? match[2].split(',').map(c => c.trim()) : ['all columns']
-                const table = match[3] || 'specified table'
-                const condition = match[4] ? `where ${match[4]}` : ''
-                
+                const columns = match[1] ? match[1].split(',').map(c => c.trim()) : ['all columns']
+                const table = match[2] || 'specified table'
+                const condition = match[3] ? `where ${match[3]}` : ''
+
                 if (condition) {
                     setExplanation(`This query selects ${columns.join(', ')} from the ${table} table ${condition}.`)
                 } else {
@@ -63,31 +55,30 @@ export function SqlTool() {
                 return
             }
         }
-        
+
         // Default explanation
         setExplanation('Enter a SQL query to see an explanation.')
     }
 
     const validateSQL = (sql: string) => {
         const errors: string[] = []
-        
+
         // Check for missing semicolon
         if (!sql.trim().endsWith(';')) {
             errors.push('Missing semicolon at end of query')
         }
-        
+
         // Check for unclosed quotes
-        const openQuotes = (sql.match(/'/g) || []).length
-        const closeQuotes = (sql.match(/'/g) || []).length
-        if (openQuotes !== closeQuotes) {
+        const quotes = (sql.match(/'/g) || []).length
+        if (quotes % 2 !== 0) {
             errors.push('Unclosed quotes in query')
         }
-        
+
         // Check for basic syntax
         if (sql.toLowerCase().includes('select') && !sql.toLowerCase().includes('from')) {
             errors.push('SELECT statement without FROM clause')
         }
-        
+
         return errors
     }
 
@@ -97,11 +88,11 @@ export function SqlTool() {
             setValidationErrors([])
             return
         }
-        
+
         // Validate SQL
         const errors = validateSQL(input)
         setValidationErrors(errors)
-        
+
         try {
             if (minifyMode) {
                 // Minify: remove extra whitespace and newlines
@@ -232,15 +223,15 @@ export function SqlTool() {
                     <div className="p-4 glass rounded-2xl border-[var(--border-primary)]">
                         <h3 className="text-sm font-bold mb-3 text-red-500">Validation Errors</h3>
                         <div className="space-y-2">
-                            {validationErrors.map((error, index) => (
-                                <div key={index} className="flex items-center p-2 bg-red-50 rounded-lg">
-                                    <span className="text-sm text-red-700">{error}</span>
+                            {validationErrors.map((err: string, idx: number) => (
+                                <div key={idx} className="flex items-center p-2 bg-red-50 rounded-lg">
+                                    <span className="text-sm text-red-700">{err}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
                 )}
-                
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[500px] h-[600px]">
                     <div className="flex flex-col space-y-4 group">
                         <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] pl-4 transition-colors group-focus-within:text-brand">Query Source</label>
