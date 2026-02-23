@@ -2,15 +2,12 @@
 
 DevBox is an ultra-premium, 100% client-side collection of **76 developer utilities** designed for extreme speed, precision, and privacy.
 
-## ✨ What's New (v2.3)
-
-- **🎯 Expanded Suite**: Now with 76 professional tools (8 new additions!)
+- **🎯 Professional Suite**: Now with 75+ premium developer tools
+- **💎 Core Tool Overhaul**: Significant enhancements to JSON, CSV, JWT, Token, and Timestamp tools
 - **☁️ Weather & Info**: New Weather Lookup, Country Info, GitHub Stats
-- **🎲 Random Data**: Generate fake user profiles for testing
-- **🌍 Translator**: Translate between 15+ languages
-- **🖼️ Placeholders**: Generate custom placeholder images
-- **⚡ PWA Support**: Installable as a progressive web app with offline mode
-- **🔧 Enhanced**: JSON Minification, Improved build performance
+- **🌍 Translator**: Translate between 15+ languages instantly
+- **🖼️ Placeholders**: Generate custom placeholder images with effects
+- **⚡ PWA Support**: Fast, offline-capable progressive web app
 
 ## 🚀 Key Features
 
@@ -21,23 +18,23 @@ DevBox is an ultra-premium, 100% client-side collection of **76 developer utilit
 
 ## 📚 Complete Tool Suite
 
-### Data & Formats (9 tools)
-JSON Formatter, JSON String Escape, JSON ↔ XML, JSON ↔ YAML, CSV to JSON, CSV ↔ JSON, XML & YAML Tools, Base Converter, SQL Formatter
+### Data & Formats (8 tools)
+JSON Formatter (Pro), JSON String Escape, JSON ↔ XML, JSON ↔ YAML, CSV Tool (Advanced), XML & YAML Tools, Base Converter, SQL Formatter
 
 ### Encoding (5 tools)
 Base64 Encoder, URL Encoder, Unicode Escape, Hex Encode, HTML Entity
 
 ### Web Dev (9 tools)
-API Tester, HTML Preview, Regex Tester, JWT Decoder, CSS Flexbox, CSS Grid, Bezier Curves, Gradient Generator, GitHub README Generator
+API Tester, HTML Preview, Regex Tester, JWT Tool (Pro), CSS Flexbox, CSS Grid, Bezier Curves, Gradient Generator, GitHub README Generator
 
 ### Security (7 tools)
-Password Generator, Password Checker, Token Generator (UUID/Random), Hash Calculator, HMAC Calculator, AES Encrypt/Decrypt, File Hash
+Password Generator, Password Checker, Token Generator (v4/v7), Hash Calculator, HMAC Calculator, AES Encrypt/Decrypt, File Hash
 
 ### Network (8 tools)
 IP Lookup, IP Validator, DNS Lookup, WHOIS (RDAP), MAC Lookup, HTTP Status Codes, URL Parser, Subnet Calculator
 
 ### Time & Date (8 tools)
-Unix Timestamp, ISO 8601 Parser, Cron Viewer, Timezone Converter, World Clock, Duration Converter, Age Calculator, Date Difference
+Timestamp Tool (High Precision), ISO 8601 Parser, Cron Viewer, Timezone Converter, World Clock, Duration Converter, Age Calculator, Date Difference
 
 ### Images & Media (7 tools)
 Image Master (Compress/Crop), Image Base64, Image Info, Image Format Converter, PDF Tools (Merge/Split/Convert), Color Converter, QR Generator
