@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import mermaid from 'mermaid'
 import { ToolLayout } from './ToolLayout'
-import { Network, Download, RefreshCcw } from 'lucide-react'
+import { Network } from 'lucide-react'
 import { copyToClipboard } from '../../lib/utils'
 
 export function ArchitectureDiagramTool() {

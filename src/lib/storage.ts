@@ -1,4 +1,4 @@
-import React from 'react'
+import { useState } from 'react'
 
 export const getLocalData = (key: string, defaultValue: any) => {
     const data = localStorage.getItem(key)
@@ -38,12 +38,15 @@ export const useFavorites = () => {
     return { favorites: getLocalData('favorites', []), toggleFavorite }
 }
 
-export const usePersistentState = <T>(key: string, defaultValue: T): [T, (val: T) => void] => {
-    const [state, setState] = React.useState<T>(() => getLocalData(key, defaultValue))
+export const usePersistentState = <T>(key: string, defaultValue: T): [T, (val: T | ((prev: T) => T)) => void] => {
+    const [state, setState] = useState<T>(() => getLocalData(key, defaultValue))
 
-    const setPersistentState = (val: T) => {
-        setState(val)
-        setLocalData(key, val)
+    const setPersistentState = (val: T | ((prev: T) => T)) => {
+        setState(prev => {
+            const next = typeof val === 'function' ? (val as (prev: T) => T)(prev) : val
+            setLocalData(key, next)
+            return next
+        })
     }
 
     return [state, setPersistentState]

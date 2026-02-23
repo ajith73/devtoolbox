@@ -183,10 +183,12 @@ export function ApiTool() {
 
             const replacedHeaders = headers.map(h => ({ key: h.key, value: replaceEnvVars(h.value) }))
             const authHeaders = getAuthHeaders()
-            const headerObj = { ...replacedHeaders.reduce((acc, h) => {
-                if (h.key) acc[h.key] = h.value
-                return acc
-            }, {} as any), ...authHeaders }
+            const headerObj = {
+                ...replacedHeaders.reduce((acc, h) => {
+                    if (h.key) acc[h.key] = h.value
+                    return acc
+                }, {} as any), ...authHeaders
+            }
 
             const options: RequestInit = {
                 method,
@@ -213,7 +215,7 @@ export function ApiTool() {
             setStatus(res.status)
 
             // Save to history
-            setHistory(prev => [{ method, url: fullUrl, timestamp: Date.now() }, ...prev.slice(0, 9)])
+            setHistory((prev: RequestHistory[]) => [{ method, url: fullUrl, timestamp: Date.now() }, ...prev.slice(0, 9)])
 
             try {
                 const json = JSON.parse(text)
