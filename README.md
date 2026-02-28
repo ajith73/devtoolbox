@@ -1,11 +1,12 @@
 # DevBox | Professional Developer Toolkit
 
-DevBox is an ultra-premium, 100% client-side collection of **76 developer utilities** designed for extreme speed, precision, and privacy.
+DevBox is an ultra-premium, 100% client-side collection of **72 developer utilities** designed for extreme speed, precision, and privacy.
 
-- **🎯 Professional Suite**: Now with 75+ premium developer tools
+- **🎯 Professional Suite**: Now with 72 premium developer tools
 - **💎 Core Tool Overhaul**: Significant enhancements to JSON, CSV, JWT, Token, and Timestamp tools
-- **☁️ Weather & Info**: New Weather Lookup, Country Info, GitHub Stats
-- **🌍 Translator**: Translate between 15+ languages instantly
+- **🌍 Advanced Diagram Creation**: Pro Architecture Diagram tool with visual builder, Mermaid 11 support, persistent versioning, and mobile-responsive UI
+- **📄 Pro Document Suite**: Advanced PDF, Resume, and Invoice generators with template support
+- **🌍 Real-time Utilities**: Weather Lookup, Currency Converter, and Language Translator
 - **🖼️ Placeholders**: Generate custom placeholder images with effects
 - **⚡ PWA Support**: Fast, offline-capable progressive web app
 
@@ -18,29 +19,26 @@ DevBox is an ultra-premium, 100% client-side collection of **76 developer utilit
 
 ## 📚 Complete Tool Suite
 
-### Data & Formats (8 tools)
-JSON Formatter (Pro), JSON String Escape, JSON ↔ XML, JSON ↔ YAML, CSV Tool (Advanced), XML & YAML Tools, Base Converter, SQL Formatter
+### Data & Formats (9 tools)
+JSON Formatter (Pro), JSON String Escape, JSON ↔ XML, JSON ↔ YAML, CSV to JSON, XML & YAML Tools, Base Converter, SQL Formatter, and more
 
-### Encoding (5 tools)
-Base64 Encoder, URL Encoder, Unicode Escape, Hex Encode, HTML Entity
+### Encoding & Security (12 tools)
+Base64 Encoder, URL Tool (Pro), Unicode Escape, Hex Encode, HTML Entity, Password Toolkit (Pro), Token Generator (v4/v7), Hash Calculator, HMAC, AES-256-GCM, File Hash
 
-### Web Dev (9 tools)
-API Tester, HTML Preview, Regex Tester, JWT Tool (Pro), CSS Flexbox, CSS Grid, Bezier Curves, Gradient Generator, GitHub README Generator
+### Web & Architecture (12 tools)
+Architecture Diagram Creator (Pro), API Tester, HTML Preview, Regex Tester, JWT Tool (Pro), CSS Flexbox & Grid, Bezier Curves, Gradient Generator, GitHub README & User Stats
 
-### Security (7 tools)
-Password Generator, Password Checker, Token Generator (v4/v7), Hash Calculator, HMAC Calculator, AES Encrypt/Decrypt, File Hash
-
-### Network (8 tools)
-IP Lookup, IP Validator, DNS Lookup, WHOIS (RDAP), MAC Lookup, HTTP Status Codes, URL Parser, Subnet Calculator
+### Network (7 tools)
+IP Lookup & Validator, DNS Lookup (DoH), WHOIS (RDAP), MAC Lookup, HTTP Status Codes, Subnet Calculator
 
 ### Time & Date (8 tools)
 Timestamp Tool (High Precision), ISO 8601 Parser, Cron Viewer, Timezone Converter, World Clock, Duration Converter, Age Calculator, Date Difference
 
-### Images & Media (7 tools)
-Image Master (Compress/Crop), Image Base64, Image Info, Image Format Converter, PDF Tools (Merge/Split/Convert), Color Converter, QR Generator
+### Media & Design (10 tools)
+Image Master (Pro), Image Base64, Image Info, Image Format Converter, PDF Generator, Resume & Invoice Builders, Color Toolkit, QR Generator
 
-### Text & Utilities (15 tools)
-Case Converter, Markdown Editor, Text Statistics, Lorem Ipsum, Slug Converter, ASCII/Code Point, Text Diff, Morse Code, Unit Converter, User Agent Parser, and more
+### Text & Advanced Utilities (14 tools)
+Case Converter, Markdown Editor, Text Statistics, Lorem Ipsum, Slug Converter, ASCII Lookup, Text Diff, Morse Code, Unit Converter, Currency, Dictionary, Weather, and more
 
 ## 🛠️ Tech Stack
 
