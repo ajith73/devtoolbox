@@ -47,3 +47,4 @@ tmp/
 _agent/
 _agents/
 .cortex/
+node_modules
