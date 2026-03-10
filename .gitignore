@@ -48,3 +48,4 @@ _agent/
 _agents/
 .cortex/
 node_modules
+.env*.local

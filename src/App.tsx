@@ -22,10 +22,9 @@ import { GradientTool } from './components/tools/GradientTool'
 import { BezierTool } from './components/tools/BezierTool'
 import { TextTool } from './components/tools/TextTool'
 import { AgeCalculatorTool } from './components/tools/AgeCalculatorTool'
-import { MarkdownTool } from './components/tools/MarkdownTool'
-import { XmlYamlTool } from './components/tools/XmlYamlTool'
 import { FlexTool } from './components/tools/FlexTool'
 import { GridTool } from './components/tools/GridTool'
+import { CssGridTool } from './components/tools/CssGridTool'
 import { GithubReadmeTool } from './components/tools/GithubReadmeTool'
 import { PdfTool } from './components/tools/PdfTool'
 import { HtmlEntityTool } from './components/tools/HtmlEntityTool'
@@ -105,8 +104,7 @@ function App() {
           <Route path="/bezier" element={<BezierTool />} />
           <Route path="/text" element={<TextTool />} />
           <Route path="/age" element={<AgeCalculatorTool />} />
-          <Route path="/markdown" element={<MarkdownTool />} />
-          <Route path="/xml-yaml" element={<XmlYamlTool />} />
+          <Route path="/css-grid" element={<CssGridTool />} />
           <Route path="/html-entity" element={<HtmlEntityTool />} />
           <Route path="/unicode" element={<UnicodeEscapeTool />} />
           <Route path="/hex" element={<HexTool />} />

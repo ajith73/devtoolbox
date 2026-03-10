@@ -316,15 +316,15 @@ export const TOOLS: Tool[] = [
         howToUse: 'Adjust the container properties on the left. Watch the live rendering engine update the layout in real-time. Copy the optimized CSS code for your project.'
     },
     {
-        id: 'grid',
-        name: 'CSS Grid',
-        description: 'Architect complex grid layouts visually.',
+        id: 'css-grid',
+        name: 'CSS Grid Generator',
+        description: 'Create responsive CSS Grid layouts with drag-and-drop visual builder.',
         icon: Grid,
         color: 'text-cyan-400',
-        path: '/grid',
+        path: '/css-grid',
         category: 'dev',
-        seoTitle: 'Online CSS Grid Generator - Professional Layout Architect',
-        howToUse: 'Set your columns, rows, and gap spacing. The interactive canvas will project your grid structure. Click "Copy Code" to export the CSS configuration.'
+        seoTitle: 'CSS Grid Generator - Visual Drag-and-Drop Layout Builder',
+        howToUse: 'Adjust columns, rows, and gaps. Use templates or build custom layouts. Generate CSS, Tailwind, and SCSS code with responsive breakpoints.'
     },
     {
         id: 'github-readme',
