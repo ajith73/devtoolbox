@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { ToolLayout } from './ToolLayout'
-import { DollarSign, TrendingUp, RefreshCw } from 'lucide-react'
+import { usePersistentState } from '../../lib/storage'
+import { DollarSign, TrendingUp, Zap, ArrowRightLeft } from 'lucide-react'
 
 interface ExchangeRates {
     [key: string]: number
@@ -25,9 +26,9 @@ const POPULAR_CURRENCIES = [
 ]
 
 export function CurrencyConverterTool() {
-    const [amount, setAmount] = useState('100')
-    const [fromCurrency, setFromCurrency] = useState('USD')
-    const [toCurrency, setToCurrency] = useState('EUR')
+    const [amount, setAmount] = usePersistentState('currency_amount', '100')
+    const [fromCurrency, setFromCurrency] = usePersistentState('currency_from', 'USD')
+    const [toCurrency, setToCurrency] = usePersistentState('currency_to', 'EUR')
     const [rates, setRates] = useState<ExchangeRates>({})
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -38,7 +39,6 @@ export function CurrencyConverterTool() {
         setLoading(true)
         setError(null)
         try {
-            // Frankfurter API - Free, no API key required!
             const response = await fetch(`https://api.frankfurter.app/latest?from=${fromCurrency}`)
             if (!response.ok) throw new Error('Failed to fetch exchange rates')
             const data = await response.json()
@@ -67,8 +67,9 @@ export function CurrencyConverterTool() {
     }, [amount, toCurrency, rates])
 
     const swapCurrencies = () => {
+        const tempFrom = fromCurrency
         setFromCurrency(toCurrency)
-        setToCurrency(fromCurrency)
+        setToCurrency(tempFrom)
     }
 
     const fromSymbol = POPULAR_CURRENCIES.find(c => c.code === fromCurrency)?.symbol || fromCurrency
@@ -77,124 +78,141 @@ export function CurrencyConverterTool() {
     return (
         <ToolLayout
             title="Currency Converter"
-            description="Real-time currency conversion with live exchange rates."
+            description="Real-time currency transformation system utilizing live neural exchange rate telemetry."
             icon={DollarSign}
             onReset={() => { setAmount('100'); setFromCurrency('USD'); setToCurrency('EUR') }}
         >
-            <div className="max-w-4xl mx-auto space-y-8">
-                {/* Amount Input */}
-                <div className="space-y-4">
-                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] pl-4">
-                        Amount
+            <div className="max-w-4xl mx-auto space-y-12">
+                {/* Amount Matrix */}
+                <div className="space-y-6 text-center">
+                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.5em]">
+                        Quantum Amount Descriptor
                     </label>
-                    <input
-                        type="number"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        className="w-full text-4xl font-black p-8 rounded-[3rem] bg-[var(--input-bg)] border-[var(--border-primary)] text-[var(--text-primary)] focus:ring-4 focus:ring-brand/10 transition-all text-center"
-                        placeholder="100"
-                        step="0.01"
-                    />
+                    <div className="relative group">
+                        <div className="absolute inset-x-0 bottom-0 h-[2px] bg-brand scale-x-0 group-focus-within:scale-x-100 transition-transform duration-700" />
+                        <span className="absolute left-8 top-1/2 -translate-y-1/2 text-6xl font-black text-brand pointer-events-none opacity-20 group-focus-within:opacity-100 transition-opacity">
+                            {fromSymbol}
+                        </span>
+                        <input
+                            type="number"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            className="w-full text-5xl md:text-7xl font-black p-12 pr-12 rounded-[4rem] bg-[var(--input-bg)] border-[var(--border-primary)] text-[var(--text-primary)] focus:ring-8 focus:ring-brand/5 transition-all text-center outline-none shadow-2xl placeholder:opacity-10"
+                            placeholder="100.00"
+                            step="0.01"
+                        />
+                    </div>
                 </div>
 
-                {/* From Currency */}
-                <div className="space-y-4">
-                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] pl-4">
-                        From
-                    </label>
-                    <select
-                        value={fromCurrency}
-                        onChange={(e) => setFromCurrency(e.target.value)}
-                        className="w-full text-xl font-bold p-6 rounded-[2rem] bg-[var(--input-bg)] border-[var(--border-primary)] text-[var(--text-primary)] focus:ring-4 focus:ring-brand/10 transition-all cursor-pointer"
-                    >
-                        {POPULAR_CURRENCIES.map((curr) => (
-                            <option key={curr.code} value={curr.code}>
-                                {curr.symbol} {curr.code} - {curr.name}
-                            </option>
-                        ))}
-                    </select>
+                {/* Exchange Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-[1fr,auto,1fr] items-center gap-8">
+                    <div className="space-y-4">
+                        <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] pl-6">
+                            Origin
+                        </label>
+                        <select
+                            value={fromCurrency}
+                            onChange={(e) => setFromCurrency(e.target.value)}
+                            className="w-full text-xl font-black p-8 rounded-[2.5rem] bg-[var(--bg-secondary)]/40 border-[var(--border-primary)] text-[var(--text-primary)] focus:ring-8 focus:ring-brand/5 transition-all cursor-pointer outline-none appearance-none shadow-xl"
+                        >
+                            {POPULAR_CURRENCIES.map((curr) => (
+                                <option key={curr.code} value={curr.code} className="bg-[var(--bg-primary)]">
+                                    {curr.code} - {curr.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex justify-center pt-8">
+                        <button
+                            onClick={swapCurrencies}
+                            className="p-6 rounded-3xl glass hover:bg-brand hover:text-white text-brand transition-all hover:scale-110 active:scale-95 shadow-2xl border-[var(--border-primary)]"
+                            title="Swap Currencies"
+                        >
+                            <ArrowRightLeft className="w-6 h-6" />
+                        </button>
+                    </div>
+
+                    <div className="space-y-4">
+                        <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] pl-6">
+                            Destination
+                        </label>
+                        <select
+                            value={toCurrency}
+                            onChange={(e) => setToCurrency(e.target.value)}
+                            className="w-full text-xl font-black p-8 rounded-[2.5rem] bg-[var(--bg-secondary)]/40 border-[var(--border-primary)] text-[var(--text-primary)] focus:ring-8 focus:ring-brand/5 transition-all cursor-pointer outline-none appearance-none shadow-xl"
+                        >
+                            {POPULAR_CURRENCIES.map((curr) => (
+                                <option key={curr.code} value={curr.code} className="bg-[var(--bg-primary)]">
+                                    {curr.code} - {curr.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
 
-                {/* Swap Button */}
-                <div className="flex justify-center">
-                    <button
-                        onClick={swapCurrencies}
-                        className="p-4 rounded-full bg-brand hover:bg-brand/80 text-white transition-all hover:scale-110 shadow-lg shadow-brand/20"
-                    >
-                        <RefreshCw className="w-6 h-6" />
-                    </button>
-                </div>
-
-                {/* To Currency */}
-                <div className="space-y-4">
-                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] pl-4">
-                        To
-                    </label>
-                    <select
-                        value={toCurrency}
-                        onChange={(e) => setToCurrency(e.target.value)}
-                        className="w-full text-xl font-bold p-6 rounded-[2rem] bg-[var(--input-bg)] border-[var(--border-primary)] text-[var(--text-primary)] focus:ring-4 focus:ring-brand/10 transition-all cursor-pointer"
-                    >
-                        {POPULAR_CURRENCIES.map((curr) => (
-                            <option key={curr.code} value={curr.code}>
-                                {curr.symbol} {curr.code} - {curr.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Result */}
+                {/* Result Section */}
                 {result !== null && (
-                    <div className="glass p-10 rounded-[3rem] border-[var(--border-primary)] space-y-4">
-                        <div className="flex items-baseline justify-center space-x-3">
-                            <span className="text-6xl font-black text-brand">
-                                {toSymbol}
-                            </span>
-                            <span className="text-6xl font-black text-[var(--text-primary)]">
-                                {result.toFixed(2)}
-                            </span>
+                    <div className="glass p-12 rounded-[4rem] border-[var(--border-primary)] space-y-8 bg-brand/5 shadow-3xl text-center relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand/5 rounded-bl-[4rem] group-hover:bg-brand/10 transition-colors pointer-events-none" />
+
+                        <div className="space-y-4">
+                            <p className="text-[10px] font-black text-brand uppercase tracking-[0.6em]">Transformation Results</p>
+                            <div className="flex items-baseline justify-center space-x-4">
+                                <span className="text-4xl md:text-5xl font-black text-brand opacity-40">
+                                    {toSymbol}
+                                </span>
+                                <span className="text-6xl md:text-8xl font-black text-[var(--text-primary)] tracking-tighter">
+                                    {result.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                            </div>
                         </div>
-                        <div className="text-center space-y-2">
-                            <p className="text-[var(--text-muted)] text-sm">
-                                {fromSymbol}{parseFloat(amount).toFixed(2)} {fromCurrency} = {toSymbol}{result.toFixed(2)} {toCurrency}
+
+                        <div className="flex flex-col items-center space-y-4 pt-6 border-t border-brand/10">
+                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center space-x-3">
+                                <Zap className="w-3.5 h-3.5 text-brand" />
+                                <span>{parseFloat(amount).toLocaleString()} {fromCurrency} EQUALS {result.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {toCurrency}</span>
                             </p>
                             {lastUpdated && (
-                                <p className="text-[var(--text-muted)] text-xs flex items-center justify-center space-x-2">
+                                <p className="text-[var(--text-muted)] text-[9px] font-black uppercase tracking-widest flex items-center space-x-2 opacity-40">
                                     <TrendingUp className="w-3 h-3" />
-                                    <span>Rate updated: {lastUpdated.toLocaleDateString()}</span>
+                                    <span>Rate Telemetry Updated: {lastUpdated.toLocaleDateString()}</span>
                                 </p>
                             )}
                         </div>
                     </div>
                 )}
 
-                {/* Exchange Rate */}
-                {rates[toCurrency] && (
-                    <div className="text-center p-6 rounded-[2rem] bg-[var(--bg-secondary)]/30 border border-[var(--border-primary)]">
-                        <p className="text-sm text-[var(--text-muted)] mb-2 uppercase tracking-widest font-bold">Current Rate</p>
-                        <p className="text-xl font-black text-brand">
-                            1 {fromCurrency} = {rates[toCurrency].toFixed(4)} {toCurrency}
-                        </p>
+                {/* Telemetry Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-8">
+                    {rates[toCurrency] && (
+                        <div className="p-8 rounded-[2.5rem] bg-[var(--bg-secondary)]/40 border border-[var(--border-primary)] shadow-inner text-center space-y-3 group hover:border-brand/30 transition-all">
+                            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-black opacity-60">Neural Exchange Vector</p>
+                            <p className="text-2xl font-black text-brand group-hover:scale-110 transition-transform">
+                                1.00 {fromCurrency} = {rates[toCurrency].toFixed(4)} {toCurrency}
+                            </p>
+                        </div>
+                    )}
+                    <div className="p-8 rounded-[2.5rem] bg-[var(--bg-secondary)]/40 border border-[var(--border-primary)] shadow-inner text-center space-y-3 group hover:border-brand/30 transition-all flex flex-col justify-center">
+                        <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-black opacity-60">Source Provider</p>
+                        <p className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-[0.2em]">Frankfurter Federated API • Real-time</p>
                     </div>
-                )}
+                </div>
 
-                {/* Loading/Error States */}
+                {/* Status Overlays */}
                 {loading && (
-                    <div className="text-center text-brand font-bold animate-pulse">
-                        Fetching latest rates...
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-primary)]/40 backdrop-blur-sm pointer-events-none">
+                        <div className="flex flex-col items-center space-y-4">
+                            <div className="w-16 h-16 border-4 border-brand/20 rounded-full border-t-brand animate-spin" />
+                            <p className="text-[10px] font-black text-brand uppercase tracking-[0.5em]">Synchronizing Exchange Telemetry...</p>
+                        </div>
                     </div>
                 )}
                 {error && (
-                    <div className="text-center text-red-500 p-4 bg-red-500/10 rounded-2xl border border-red-500/20">
+                    <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-3xl text-center text-red-500 font-black text-[10px] uppercase tracking-widest shadow-lg">
                         {error}
                     </div>
                 )}
-
-                {/* Info */}
-                <div className="text-center text-xs text-[var(--text-muted)] space-y-1">
-                    <p>Powered by Frankfurter API • Free & Open Source</p>
-                    <p>Rates are indicative and may differ from actual transaction rates</p>
-                </div>
             </div>
         </ToolLayout>
     )

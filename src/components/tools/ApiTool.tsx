@@ -524,13 +524,13 @@ export function ApiTool() {
                                         switch (viewMode) {
                                             case 'pretty':
                                             case 'raw':
-                                                return response || <span className="text-[var(--text-muted)] opacity-30 italic">Hit send to see the response payload...</span>
+                                                return response || <span className="text-[var(--text-secondary)] italic opacity-60">Hit send to see the response payload...</span>
                                             case 'headers':
                                                 return JSON.stringify(responseHeaders, null, 2)
                                             case 'status':
                                                 return `Status: ${status}\nTime: ${time}ms\nSize: ${size?.toFixed(2)} KB`
                                             default:
-                                                return response || <span className="text-[var(--text-muted)] opacity-30 italic">Hit send to see the response payload...</span>
+                                                return response || <span className="text-[var(--text-secondary)] italic opacity-60">Hit send to see the response payload...</span>
                                         }
                                     })()}
                                 </pre>
