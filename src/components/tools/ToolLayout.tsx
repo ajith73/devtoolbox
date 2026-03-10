@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Copy, Download, RefreshCcw, Check, ArrowLeft, HelpCircle, Zap, Star } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 import confetti from 'canvas-confetti'
 import { TOOLS } from '../../lib/config'
-import { useRecentlyUsed, useFavorites } from '../../lib/storage'
+import { useFavorites } from '../../lib/storage'
 import { motion } from 'framer-motion'
 
 interface ToolPageProps {
@@ -31,16 +31,35 @@ export function ToolLayout({
     downloadDisabled
 }: ToolPageProps) {
     const [copied, setCopied] = useState(false)
-    const { addToRecent } = useRecentlyUsed()
     const toolInfo = TOOLS.find(t => t.name === title || t.seoTitle?.includes(title) || t.description === description)
     const { favorites, toggleFavorite } = useFavorites()
     const isFavorite = toolInfo ? favorites.includes(toolInfo.id) : false
 
+    // Use refs to store the latest callback functions
+    const onResetRef = useRef(onReset)
+    const onCopyRef = useRef(onCopy)
+    const copyDisabledRef = useRef(copyDisabled)
+
+    // Update refs when props change
     useEffect(() => {
-        if (toolInfo) {
-            addToRecent(toolInfo.id)
-        }
-    }, [title, toolInfo, addToRecent])
+        onResetRef.current = onReset
+    }, [onReset])
+
+    useEffect(() => {
+        onCopyRef.current = onCopy
+    }, [onCopy])
+
+    useEffect(() => {
+        copyDisabledRef.current = copyDisabled
+    }, [copyDisabled])
+
+    // Temporarily disabled to test infinite loop
+    // useEffect(() => {
+    //     const currentToolInfo = TOOLS.find(t => t.name === title || t.seoTitle?.includes(title) || t.description === description)
+    //     if (currentToolInfo) {
+    //         addToRecent(currentToolInfo.id)
+    //     }
+    // }, [title])
     const handleCopy = () => {
         if (onCopy) {
             onCopy()
@@ -58,20 +77,20 @@ export function ToolLayout({
     // Keyboard Shortcuts
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.ctrlKey && e.key === 'Enter' && onReset) {
+            if (e.ctrlKey && e.key === 'Enter' && onResetRef.current) {
                 e.preventDefault()
-                onReset()
+                onResetRef.current()
             }
-            if (e.ctrlKey && e.key === 'c' && onCopy && !copyDisabled) {
+            if (e.ctrlKey && e.key === 'c' && onCopyRef.current && !copyDisabledRef.current) {
                 const selectedText = window.getSelection()?.toString()
                 if (selectedText) return
                 e.preventDefault()
-                handleCopy()
+                onCopyRef.current()
             }
         }
         window.addEventListener('keydown', handleKeyDown)
         return () => window.removeEventListener('keydown', handleKeyDown)
-    }, [onReset, onCopy, copyDisabled])
+    }, []) // No dependencies - uses refs instead
 
     return (
         <div className="max-w-6xl mx-auto px-4 lg:px-8 py-10 space-y-8 animate-fade-in text-[var(--text-primary)] transition-colors duration-500">

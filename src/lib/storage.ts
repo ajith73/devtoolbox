@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 
 export const getLocalData = (key: string, defaultValue: any) => {
     const data = localStorage.getItem(key)
@@ -17,13 +17,13 @@ export const setLocalData = (key: string, value: any) => {
 export const useRecentlyUsed = () => {
     const [recentTools, setRecentTools] = useState<string[]>(() => getLocalData('recent_tools', []))
 
-    const addToRecent = (toolId: string) => {
+    const addToRecent = useCallback((toolId: string) => {
         const recent = getLocalData('recent_tools', [])
         const filtered = recent.filter((id: string) => id !== toolId)
         const updated = [toolId, ...filtered].slice(0, 8)
         setLocalData('recent_tools', updated)
         setRecentTools(updated)
-    }
+    }, [])
 
     return { addToRecent, recentTools }
 }
@@ -31,14 +31,14 @@ export const useRecentlyUsed = () => {
 export const useFavorites = () => {
     const [favorites, setFavorites] = useState<string[]>(() => getLocalData('favorites', []))
 
-    const toggleFavorite = (toolId: string) => {
+    const toggleFavorite = useCallback((toolId: string) => {
         const current = getLocalData('favorites', [])
         const updated = current.includes(toolId)
             ? current.filter((id: string) => id !== toolId)
             : [...current, toolId]
         setLocalData('favorites', updated)
         setFavorites(updated)
-    }
+    }, [])
 
     return { favorites, toggleFavorite }
 }

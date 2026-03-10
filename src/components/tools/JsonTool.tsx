@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ToolLayout } from './ToolLayout'
 import { Braces, AlertCircle, CheckCircle2, ChevronRight } from 'lucide-react'
 import { copyToClipboard, cn } from '../../lib/utils'
@@ -200,14 +200,32 @@ export function JsonTool() {
         URL.revokeObjectURL(url)
     }
 
+    const handleReset = useCallback(() => {
+        setInput('')
+        setOutput('')
+        setError(null)
+    }, [])
+
+    const handleCopy = useCallback(() => {
+        if (output) {
+            copyToClipboard(output)
+        }
+    }, [output])
+
+    const handleDownloadWrapper = useCallback(() => {
+        if (output && mode !== 'api-preview' && mode !== 'tree') {
+            handleDownload()
+        }
+    }, [output, mode])
+
     return (
         <ToolLayout
             title="JSON Formatter"
             description="Validate, format, and minify your JSON data."
             icon={Braces}
-            onReset={() => { setInput(''); setOutput(''); setError(null); }}
-            onCopy={output ? () => copyToClipboard(output) : undefined}
-            onDownload={output && mode !== 'api-preview' && mode !== 'tree' ? handleDownload : undefined}
+            onReset={handleReset}
+            onCopy={output ? handleCopy : undefined}
+            onDownload={output && mode !== 'api-preview' && mode !== 'tree' ? handleDownloadWrapper : undefined}
         >
             <div className="space-y-4">
                 {/* Mode Toggle */}
