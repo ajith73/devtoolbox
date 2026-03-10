@@ -48,6 +48,25 @@
       transform: translateY(-10px);
     }
   }
+
+  @keyframes gradientMove {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+}
+
+.animate-gradient {
+  background-size: 400% 400% !important;
+  animation: gradientMove 8s ease infinite !important;
 }
 
 :root {
@@ -71,10 +90,10 @@
   --bg-secondary: #ffffff;
   --text-primary: #0f172a;
   --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --border-primary: #e2e8f0;
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: #e2e8f0;
+  --text-muted: #64748b;
+  --border-primary: #cbd5e1;
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: #cbd5e1;
   --input-bg: #f1f5f9;
 
   color-scheme: light;

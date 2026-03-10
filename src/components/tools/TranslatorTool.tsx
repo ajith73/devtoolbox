@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ToolLayout } from './ToolLayout'
-import { Languages, ArrowRightLeft, Copy, Check, Volume2 } from 'lucide-react'
+import { usePersistentState } from '../../lib/storage'
+import { Languages, ArrowRightLeft, Copy, Check, Volume2, Zap } from 'lucide-react'
 import { cn, copyToClipboard } from '../../lib/utils'
 
 const LANGUAGES = [
@@ -22,10 +23,10 @@ const LANGUAGES = [
 ]
 
 export function TranslatorTool() {
-    const [sourceText, setSourceText] = useState('')
-    const [translatedText, setTranslatedText] = useState('')
-    const [sourceLang, setSourceLang] = useState('en')
-    const [targetLang, setTargetLang] = useState('es')
+    const [sourceText, setSourceText] = usePersistentState('translator_source', '')
+    const [translatedText, setTranslatedText] = usePersistentState('translator_result', '')
+    const [sourceLang, setSourceLang] = usePersistentState('translator_source_lang', 'en')
+    const [targetLang, setTargetLang] = usePersistentState('translator_target_lang', 'es')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [copied, setCopied] = useState(false)
@@ -77,115 +78,131 @@ export function TranslatorTool() {
     return (
         <ToolLayout
             title="Language Translator"
-            description="Translate text between 15+ languages instantly."
+            description="Professional language transformation engine powered by high-fidelity neural translation vectors."
             icon={Languages}
             onReset={() => {
                 setSourceText('')
                 setTranslatedText('')
                 setError(null)
             }}
+            onCopy={handleCopy}
         >
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="max-w-5xl mx-auto space-y-10">
                 {/* Controls */}
-                <div className="glass p-4 rounded-[2rem] border-[var(--border-primary)] flex flex-col md:flex-row items-center justify-between gap-4">
-                    <select
-                        value={sourceLang}
-                        onChange={(e) => setSourceLang(e.target.value)}
-                        className="w-full md:w-48 p-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] font-bold text-[var(--text-primary)] focus:ring-2 focus:ring-brand/20 outline-none"
-                    >
-                        {LANGUAGES.map(lang => (
-                            <option key={lang.code} value={lang.code}>{lang.name}</option>
-                        ))}
-                    </select>
+                <div className="glass p-6 rounded-[2.5rem] border-[var(--border-primary)] flex flex-col md:flex-row items-center justify-between gap-6 bg-[var(--bg-secondary)]/30">
+                    <div className="flex flex-1 items-center gap-4 w-full">
+                        <select
+                            value={sourceLang}
+                            onChange={(e) => setSourceLang(e.target.value)}
+                            className="w-full md:w-48 p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--border-primary)] font-black text-xs uppercase tracking-widest text-[var(--text-primary)] focus:ring-4 focus:ring-brand/10 outline-none appearance-none cursor-pointer transition-all"
+                        >
+                            {LANGUAGES.map(lang => (
+                                <option key={lang.code} value={lang.code}>{lang.name}</option>
+                            ))}
+                        </select>
 
-                    <button
-                        onClick={swapLanguages}
-                        className="p-3 rounded-full hover:bg-[var(--bg-secondary)] transition-colors text-[var(--text-muted)] hover:text-brand"
-                    >
-                        <ArrowRightLeft className="w-6 h-6" />
-                    </button>
+                        <button
+                            onClick={swapLanguages}
+                            className="p-4 rounded-2xl glass hover:bg-brand hover:text-white transition-all text-brand border-[var(--border-primary)] shadow-lg"
+                            title="Swap Languages"
+                        >
+                            <ArrowRightLeft className="w-5 h-5" />
+                        </button>
 
-                    <select
-                        value={targetLang}
-                        onChange={(e) => setTargetLang(e.target.value)}
-                        className="w-full md:w-48 p-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] font-bold text-[var(--text-primary)] focus:ring-2 focus:ring-brand/20 outline-none"
-                    >
-                        {LANGUAGES.map(lang => (
-                            <option key={lang.code} value={lang.code}>{lang.name}</option>
-                        ))}
-                    </select>
+                        <select
+                            value={targetLang}
+                            onChange={(e) => setTargetLang(e.target.value)}
+                            className="w-full md:w-48 p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--border-primary)] font-black text-xs uppercase tracking-widest text-[var(--text-primary)] focus:ring-4 focus:ring-brand/10 outline-none appearance-none cursor-pointer transition-all"
+                        >
+                            {LANGUAGES.map(lang => (
+                                <option key={lang.code} value={lang.code}>{lang.name}</option>
+                            ))}
+                        </select>
+                    </div>
 
                     <button
                         onClick={handleTranslate}
                         disabled={loading || !sourceText.trim()}
                         className={cn(
-                            "w-full md:w-auto px-8 py-3 rounded-xl font-black uppercase tracking-wider transition-all",
+                            "w-full md:auto px-12 py-4 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] transition-all relative overflow-hidden group shadow-xl",
                             loading || !sourceText.trim()
-                                ? "bg-[var(--text-muted)]/20 text-[var(--text-muted)] cursor-not-allowed"
-                                : "bg-brand text-white hover:scale-105 shadow-lg shadow-brand/20"
+                                ? "bg-[var(--text-muted)]/10 text-[var(--text-muted)] cursor-not-allowed opacity-50"
+                                : "brand-gradient text-white hover:scale-105 active:scale-95"
                         )}
                     >
-                        {loading ? 'Translating...' : 'Translate'}
+                        <div className="flex items-center justify-center space-x-3">
+                            {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Zap className="w-4 h-4" />}
+                            <span>{loading ? 'Processing...' : 'Execute Translation'}</span>
+                        </div>
                     </button>
                 </div>
 
                 {/* Text Areas */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Source */}
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between px-2">
-                            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em]">Source</label>
+                    <div className="space-y-4 group">
+                        <div className="flex items-center justify-between px-6">
+                            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] transition-colors group-focus-within:text-brand">Input Source</label>
                             <button
                                 onClick={() => playAudio(sourceText, sourceLang)}
-                                className="p-1 hover:text-brand text-[var(--text-muted)] transition-colors"
+                                className="p-2 hover:bg-brand/10 hover:text-brand text-[var(--text-muted)] rounded-xl transition-all"
                                 disabled={!sourceText}
+                                title="Listen to Source"
                             >
                                 <Volume2 className="w-4 h-4" />
                             </button>
                         </div>
-                        <textarea
-                            value={sourceText}
-                            onChange={(e) => setSourceText(e.target.value)}
-                            className="w-full h-64 p-6 rounded-[2rem] bg-[var(--input-bg)] border-[var(--border-primary)] text-lg resize-none focus:ring-4 focus:ring-brand/10 outline-none transition-all custom-scrollbar"
-                            placeholder="Enter text to translate..."
-                        />
+                        <div className="relative">
+                            <textarea
+                                value={sourceText}
+                                onChange={(e) => setSourceText(e.target.value)}
+                                className="w-full h-80 p-10 rounded-[3.5rem] bg-[var(--input-bg)] border-[var(--border-primary)] text-lg resize-none focus:ring-8 focus:ring-brand/5 outline-none transition-all shadow-2xl custom-scrollbar placeholder:opacity-20 font-medium leading-relaxed"
+                                placeholder="Enter linguistic markers to translate..."
+                            />
+                        </div>
                     </div>
 
                     {/* Target */}
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between px-2">
-                            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em]">Translation</label>
+                    <div className="space-y-4 group">
+                        <div className="flex items-center justify-between px-6">
+                            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] transition-colors group-focus-within:text-brand">Output Matrix</label>
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => playAudio(translatedText, targetLang)}
-                                    className="p-1 hover:text-brand text-[var(--text-muted)] transition-colors"
+                                    className="p-2 hover:bg-brand/10 hover:text-brand text-[var(--text-muted)] rounded-xl transition-all"
                                     disabled={!translatedText}
+                                    title="Listen to Translation"
                                 >
                                     <Volume2 className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={handleCopy}
                                     className={cn(
-                                        "p-1 transition-colors",
-                                        copied ? "text-green-500" : "text-[var(--text-muted)] hover:text-brand"
+                                        "p-2 rounded-xl transition-all",
+                                        copied ? "bg-green-500 text-white shadow-lg" : "text-[var(--text-muted)] hover:bg-brand/10 hover:text-brand"
                                     )}
                                     disabled={!translatedText}
+                                    title="Copy Transformation"
                                 >
                                     {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                                 </button>
                             </div>
                         </div>
-                        <div className="relative w-full h-64 rounded-[2rem] bg-[var(--bg-secondary)]/30 border border-[var(--border-primary)] overflow-hidden">
+                        <div className="relative w-full h-80 rounded-[3.5rem] bg-[var(--bg-secondary)]/40 border border-[var(--border-primary)] shadow-2xl overflow-hidden group-hover:border-brand/30 transition-all">
                             {loading ? (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="animate-spin w-8 h-8 border-4 border-brand border-t-transparent rounded-full" />
+                                <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4">
+                                    <div className="relative">
+                                        <div className="w-12 h-12 border-4 border-brand/20 rounded-full" />
+                                        <div className="absolute inset-0 w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin" />
+                                    </div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-brand animate-pulse">Analyzing Semantics...</p>
                                 </div>
                             ) : (
                                 <textarea
                                     readOnly
                                     value={translatedText}
-                                    className="w-full h-full p-6 bg-transparent text-lg resize-none outline-none custom-scrollbar"
-                                    placeholder="Translation will appear here..."
+                                    className="w-full h-full p-10 bg-transparent text-lg resize-none outline-none custom-scrollbar font-medium leading-relaxed"
+                                    placeholder="Linguistic transformation results will manifest here..."
                                 />
                             )}
                         </div>
@@ -193,13 +210,16 @@ export function TranslatorTool() {
                 </div>
 
                 {error && (
-                    <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-center text-red-500 font-bold text-sm">
+                    <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-3xl text-center text-red-500 font-black text-[10px] uppercase tracking-widest shadow-lg">
                         {error}
                     </div>
                 )}
 
-                <div className="text-center text-xs text-[var(--text-muted)]">
-                    Powered by MyMemory Translation API • Free Usage
+                <div className="p-8 glass rounded-[2.5rem] border-dashed border-brand/20 flex flex-col items-center justify-center space-y-2 bg-brand/5 shadow-inner">
+                    <p className="text-[10px] text-brand font-black uppercase tracking-[0.4em]">API Connectivity</p>
+                    <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest">
+                        Neural Engine: MyMemory Neural Network • Free Compute Tier
+                    </p>
                 </div>
             </div>
         </ToolLayout>

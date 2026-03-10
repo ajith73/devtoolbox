@@ -15,27 +15,32 @@ export const setLocalData = (key: string, value: any) => {
 }
 
 export const useRecentlyUsed = () => {
+    const [recentTools, setRecentTools] = useState<string[]>(() => getLocalData('recent_tools', []))
+
     const addToRecent = (toolId: string) => {
         const recent = getLocalData('recent_tools', [])
         const filtered = recent.filter((id: string) => id !== toolId)
         const updated = [toolId, ...filtered].slice(0, 8)
         setLocalData('recent_tools', updated)
+        setRecentTools(updated)
     }
 
-    return { addToRecent, recentTools: getLocalData('recent_tools', []) }
+    return { addToRecent, recentTools }
 }
 
 export const useFavorites = () => {
+    const [favorites, setFavorites] = useState<string[]>(() => getLocalData('favorites', []))
+
     const toggleFavorite = (toolId: string) => {
-        const favorites = getLocalData('favorites', [])
-        const updated = favorites.includes(toolId)
-            ? favorites.filter((id: string) => id !== toolId)
-            : [...favorites, toolId]
+        const current = getLocalData('favorites', [])
+        const updated = current.includes(toolId)
+            ? current.filter((id: string) => id !== toolId)
+            : [...current, toolId]
         setLocalData('favorites', updated)
-        return updated
+        setFavorites(updated)
     }
 
-    return { favorites: getLocalData('favorites', []), toggleFavorite }
+    return { favorites, toggleFavorite }
 }
 
 export const usePersistentState = <T>(key: string, defaultValue: T): [T, (val: T | ((prev: T) => T)) => void] => {

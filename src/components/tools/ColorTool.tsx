@@ -193,6 +193,24 @@ export function ColorTool() {
                 </div>
             )}
 
+            {/* Color Identity Mini-Tool */}
+            <div className="mb-8 p-6 glass rounded-[2.5rem] border border-brand/20 bg-brand/5 flex flex-col md:flex-row items-center justify-between gap-6 uppercase tracking-widest font-black">
+                <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-brand bg-brand/10 border border-brand/20">
+                        <Pipette className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h3 className="text-[11px] text-brand">Chromatic Identity</h3>
+                        <p className="text-[10px] text-[var(--text-muted)] opacity-60 italic">Identified as: <span className="text-brand not-italic">{c.toName() || 'Premium Hue'}</span></p>
+                    </div>
+                </div>
+                <div className="flex gap-2">
+                    {['#FF5733', '#33FF57', '#3357FF', '#F333FF', '#FFF333'].map(p => (
+                        <button key={p} onClick={() => setColor(p)} className="w-8 h-8 rounded-lg border border-white/10 shadow-sm transition-transform hover:scale-110" style={{ backgroundColor: p }} />
+                    ))}
+                </div>
+            </div>
+
             {/* Color Blind SVG Filters */}
             <svg style={{ display: 'none' }}>
                 <filter id="protanopia">

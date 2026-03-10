@@ -2,9 +2,10 @@ import { Link, useLocation } from 'react-router-dom'
 import { TOOLS } from '../../lib/config'
 import type { Tool } from '../../lib/config'
 import { cn } from '../../lib/utils'
-import { LayoutGrid, Command, History, Sparkles, Lightbulb, ChevronDown } from 'lucide-react'
+import { LayoutGrid, Command, History, Sparkles, Lightbulb, ChevronDown, Star } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useRecentlyUsed, useFavorites } from '../../lib/storage'
 
 // Define tool groups
 const TOOL_GROUPS: Record<string, string[]> = {
@@ -20,7 +21,9 @@ const TOOL_GROUPS: Record<string, string[]> = {
 
 export function Sidebar() {
     const location = useLocation()
-    const [recentIds, setRecentIds] = useState<string[]>([])
+    const { favorites } = useFavorites()
+    const { recentTools } = useRecentlyUsed()
+
     const [tipIndex, setTipIndex] = useState(0)
     const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
         // Default first 3 groups expanded
@@ -37,33 +40,11 @@ export function Sidebar() {
     ]
 
     useEffect(() => {
-        const stored = localStorage.getItem('recent_tools')
-        if (stored) {
-            setRecentIds(JSON.parse(stored))
-        }
-
         const interval = setInterval(() => {
             setTipIndex(prev => (prev + 1) % tips.length)
         }, 10000)
         return () => clearInterval(interval)
-    }, [])
-
-    // Update recents when location changes to a tool path
-    useEffect(() => {
-        const tool = TOOLS.find(t => t.path === location.pathname)
-        if (tool) {
-            setRecentIds(prev => {
-                const filtered = prev.filter(id => id !== tool.id)
-                const updated = [tool.id, ...filtered].slice(0, 3)
-                localStorage.setItem('recent_tools', JSON.stringify(updated))
-                return updated
-            })
-        }
-    }, [location.pathname])
-
-    const recentTools = recentIds
-        .map(id => TOOLS.find(t => t.id === id))
-        .filter((t): t is Tool => !!t)
+    }, [tips.length])
 
     const toggleGroup = (group: string) => {
         setExpandedGroups(prev => ({ ...prev, [group]: !prev[group] }))
@@ -96,13 +77,45 @@ export function Sidebar() {
                     </Link>
                 </motion.div>
 
+                {favorites.length > 0 && (
+                    <div className="pb-6 space-y-1">
+                        <p className="px-3 pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] flex items-center">
+                            <Star className="w-3 h-3 mr-2 text-yellow-500 fill-yellow-500" />
+                            Favorites
+                        </p>
+                        {favorites.map((id: string) => {
+                            const tool = TOOLS.find(t => t.id === id)
+                            if (!tool) return null
+                            const Icon = tool.icon
+                            return (
+                                <motion.div whileTap={{ scale: 0.98 }} key={`fav-${tool.id}`}>
+                                    <Link
+                                        to={tool.path}
+                                        className={cn(
+                                            "flex items-center space-x-3 px-3 py-2 rounded-xl transition-all group",
+                                            location.pathname === tool.path
+                                                ? "bg-brand/10 text-brand font-bold"
+                                                : "text-[var(--text-secondary)] hover:text-brand hover:bg-brand/5"
+                                        )}
+                                    >
+                                        <Icon className={cn("w-4 h-4 transition-colors", location.pathname === tool.path ? "text-brand" : "group-hover:text-brand")} />
+                                        <span className="text-sm">{tool.name}</span>
+                                    </Link>
+                                </motion.div>
+                            )
+                        })}
+                    </div>
+                )}
+
                 {recentTools.length > 0 && (
                     <div className="pb-6 space-y-1">
                         <p className="px-3 pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] flex items-center">
                             <History className="w-3 h-3 mr-2 text-brand" />
                             Recent
                         </p>
-                        {recentTools.map((tool) => {
+                        {recentTools.map((id: string) => {
+                            const tool = TOOLS.find(t => t.id === id)
+                            if (!tool) return null
                             const Icon = tool.icon
                             return (
                                 <motion.div whileTap={{ scale: 0.98 }} key={`recent-${tool.id}`}>
@@ -129,7 +142,7 @@ export function Sidebar() {
                 </div>
 
                 {Object.entries(TOOL_GROUPS).map(([groupName, toolIds]) => {
-                    const groupTools = toolIds.map(id => TOOLS.find(t => t.id === id)).filter((t): t is Tool => !!t)
+                    const groupTools = toolIds.map((id: string) => TOOLS.find(t => t.id === id)).filter((t): t is Tool => !!t)
                     const isExpanded = expandedGroups[groupName]
 
                     return (
@@ -152,7 +165,7 @@ export function Sidebar() {
                                         className="overflow-hidden"
                                     >
                                         <div className="space-y-0.5 pt-1">
-                                            {groupTools.map((tool) => {
+                                            {groupTools.map((tool: Tool) => {
                                                 const Icon = tool.icon
                                                 return (
                                                     <motion.div whileTap={{ scale: 0.98 }} key={tool.id}>

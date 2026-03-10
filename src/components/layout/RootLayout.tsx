@@ -175,7 +175,7 @@ export function RootLayout({ children }: { children: React.ReactNode }) {
                                     )}
                                 >
                                     <Bell className="w-5 h-5" />
-                                    <span className="absolute top-3 right-3 w-2 h-2 bg-brand rounded-full border-2 border-[var(--bg-primary)]"></span>
+                                    <span className="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full border-2 border-[var(--bg-primary)]"></span>
                                 </motion.button>
 
                                 <AnimatePresence>
@@ -184,7 +184,7 @@ export function RootLayout({ children }: { children: React.ReactNode }) {
                                             initial={{ opacity: 0, scale: 0.95, y: 10 }}
                                             animate={{ opacity: 1, scale: 1, y: 0 }}
                                             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                                            className="fixed md:absolute right-4 md:right-0 mt-3 w-[calc(100vw-32px)] md:w-80 rounded-2xl p-4 shadow-2xl border-[var(--border-primary)] z-50 text-[var(--text-primary)] bg-[var(--bg-secondary)]"
+                                            className="fixed md:absolute right-4 md:right-0 mt-3 w-[calc(100vw-32px)] md:w-80 rounded-2xl p-4 shadow-2xl border border-[var(--border-primary)] z-50 text-[var(--text-primary)] bg-[var(--bg-secondary)]/95 backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200"
                                         >
                                             <div className="flex items-center justify-between mb-4">
                                                 <h4 className="font-bold text-sm">Notifications</h4>
@@ -209,9 +209,9 @@ export function RootLayout({ children }: { children: React.ReactNode }) {
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                                className="p-3 rounded-full glass border-[var(--border-primary)] hover:brand-gradient transition-all group shadow-sm bg-[var(--bg-secondary)]/50 min-w-[40px] min-h-[40px] flex items-center justify-center"
+                                className="p-3 rounded-full glass border border-[var(--border-primary)] hover:brand-gradient transition-all group shadow-sm bg-[var(--bg-secondary)] dark:bg-[var(--bg-secondary)]/50 min-w-[40px] min-h-[40px] flex items-center justify-center"
                             >
-                                {theme === 'dark' ? <Sun className="w-5 h-5 text-[var(--text-muted)] group-hover:text-white" /> : <Moon className="w-5 h-5 text-brand" />}
+                                {theme === 'dark' ? <Sun className="w-5 h-5 text-brand" /> : <Moon className="w-5 h-5 text-[var(--text-primary)]" />}
                             </motion.button>
                         </div>
                     </div>

@@ -272,7 +272,7 @@ export function ImageTool() {
                     <p className="text-red-400 text-sm font-medium">{error}</p>
                 </div>
             )}
-            
+
             {success && (
                 <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center space-x-3 animate-fade-in">
                     <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
@@ -290,8 +290,8 @@ export function ImageTool() {
                         onDragLeave={() => setIsDragging(false)}
                         onDrop={onDrop}
                         className={cn(
-                            "min-h-[400px] glass rounded-[3rem] border-dashed border-[var(--border-primary)] flex flex-col items-center justify-center space-y-6 group cursor-pointer transition-all relative overflow-hidden bg-[var(--bg-secondary)]/30",
-                            isDragging ? "bg-brand/10 border-brand/40 scale-[1.02]" : "hover:bg-[var(--bg-secondary)]"
+                            "min-h-[400px] glass rounded-[3rem] border-dashed border-[var(--border-primary)] flex flex-col items-center justify-center space-y-6 group cursor-pointer transition-all relative overflow-hidden bg-[var(--bg-secondary)] dark:bg-[var(--bg-secondary)]/30",
+                            isDragging ? "bg-brand/10 border-brand/40 scale-[1.02]" : "hover:bg-[var(--bg-secondary)]/80 dark:hover:bg-[var(--bg-secondary)]"
                         )}
                     >
                         <div className="absolute inset-0 bg-brand/5 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -300,14 +300,14 @@ export function ImageTool() {
                         </div>
                         <div className="text-center relative">
                             <p className="text-2xl font-black tracking-tight text-[var(--text-primary)]">Surrender your pixels</p>
-                            <p className="text-[10px] text-[var(--text-muted)] mt-1 uppercase tracking-[0.3em] font-black">Drag & Drop or Click to browse</p>
+                            <p className="text-[10px] text-[var(--text-secondary)] mt-1 uppercase tracking-[0.3em] font-black">Drag & Drop or Click to browse</p>
                         </div>
                         <input type="file" ref={fileInputRef} accept="image/*" multiple={isBatch} onChange={onSelectFile} className="hidden" />
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div className="lg:col-span-2 space-y-6">
-                            <div className="relative h-[400px] lg:h-[600px] glass rounded-[2.5rem] overflow-hidden border-[var(--border-primary)] bg-black/60 shadow-inner">
+                            <div className="relative h-[400px] lg:h-[600px] glass rounded-[2.5rem] overflow-hidden border-[var(--border-primary)] bg-[var(--bg-primary)] shadow-inner">
                                 {!processedImage ? (
                                     <Cropper
                                         image={image || undefined}
@@ -322,7 +322,7 @@ export function ImageTool() {
                                         onRotationChange={setRotation}
                                     />
                                 ) : (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center p-12 bg-black/40 backdrop-blur-sm">
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center p-12 bg-[var(--bg-secondary)]/80 backdrop-blur-sm">
                                         <p className="text-[10px] font-black text-brand uppercase tracking-[0.3em] mb-4">Post-Process Preview</p>
                                         <img src={processedImage} alt="Processed" className="max-w-full max-h-full rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-[var(--border-primary)]" />
                                     </div>

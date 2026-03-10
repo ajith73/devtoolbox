@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Copy, Download, RefreshCcw, Check, ArrowLeft, HelpCircle, Zap } from 'lucide-react'
+import { Copy, Download, RefreshCcw, Check, ArrowLeft, HelpCircle, Zap, Star } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 import confetti from 'canvas-confetti'
 import { TOOLS } from '../../lib/config'
-import { useRecentlyUsed } from '../../lib/storage'
+import { useRecentlyUsed, useFavorites } from '../../lib/storage'
 import { motion } from 'framer-motion'
 
 interface ToolPageProps {
@@ -32,8 +32,9 @@ export function ToolLayout({
 }: ToolPageProps) {
     const [copied, setCopied] = useState(false)
     const { addToRecent } = useRecentlyUsed()
-
     const toolInfo = TOOLS.find(t => t.name === title || t.seoTitle?.includes(title) || t.description === description)
+    const { favorites, toggleFavorite } = useFavorites()
+    const isFavorite = toolInfo ? favorites.includes(toolInfo.id) : false
 
     useEffect(() => {
         if (toolInfo) {
@@ -76,7 +77,7 @@ export function ToolLayout({
         <div className="max-w-6xl mx-auto px-4 lg:px-8 py-10 space-y-8 animate-fade-in text-[var(--text-primary)] transition-colors duration-500">
             <Link
                 to="/"
-                className="inline-flex items-center text-sm text-[var(--text-muted)] hover:text-brand transition-all group mb-4"
+                className="inline-flex items-center text-sm text-[var(--text-secondary)] hover:text-brand transition-all group mb-4"
             >
                 <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
                 Back to Dashboard
@@ -88,7 +89,21 @@ export function ToolLayout({
                         <div className="w-14 h-14 rounded-2xl brand-gradient flex items-center justify-center shadow-lg shadow-brand/20">
                             <Icon className="w-7 h-7 text-white" />
                         </div>
-                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight underline decoration-brand/20 underline-offset-8 decoration-4">{title}</h1>
+                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight underline decoration-brand/40 underline-offset-8 decoration-4">{title}</h1>
+                        {toolInfo && (
+                            <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => toggleFavorite(toolInfo.id)}
+                                className={cn(
+                                    "p-2 rounded-xl transition-all",
+                                    isFavorite ? "text-yellow-500 fill-yellow-500" : "text-[var(--text-muted)] hover:text-yellow-500"
+                                )}
+                                title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+                            >
+                                <Star className={cn("w-6 h-6", isFavorite ? "fill-current" : "")} />
+                            </motion.button>
+                        )}
                     </div>
                     <p className="text-[var(--text-secondary)] text-base md:text-lg max-w-2xl">{description}</p>
                 </div>

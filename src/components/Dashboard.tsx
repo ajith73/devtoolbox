@@ -4,13 +4,13 @@ import { TOOLS } from '../lib/config'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, Sparkles, Filter, Search, Star, History, X } from 'lucide-react'
 import { cn } from '../lib/utils'
-import { getLocalData, useFavorites } from '../lib/storage'
+import { useFavorites, useRecentlyUsed } from '../lib/storage'
 
 export function Dashboard() {
     const [activeCategory, setActiveCategory] = useState<'all' | 'dev' | 'media' | 'data' | 'util' | 'text'>('all')
     const [searchQuery, setSearchQuery] = useState('')
     const { favorites, toggleFavorite } = useFavorites()
-    const recentIds = getLocalData('recent_tools', [])
+    const { recentTools: recentIds } = useRecentlyUsed()
     const recentTools = TOOLS.filter(t => recentIds.includes(t.id)).slice(0, 5)
     const favoriteTools = TOOLS.filter(t => favorites.includes(t.id))
 
@@ -76,10 +76,12 @@ export function Dashboard() {
                     {/* Search container */}
                     <div
                         className="
-    relative flex items-center rounded-[2rem]
-    border border-gray-300
-    transition-all duration-200
-    bg-[var(--bg-secondary)]
+                            relative flex items-center rounded-[2rem]
+                            border border-[var(--border-primary)]
+                            focus-within:border-brand/40 focus-within:ring-4 focus-within:ring-brand/5
+                            transition-all duration-300
+                            bg-[var(--bg-secondary)]
+                            shadow-sm focus-within:shadow-xl focus-within:shadow-brand/5
   "
                     >
                         {/* Search icon */}
@@ -230,7 +232,7 @@ export function Dashboard() {
                                                 e.preventDefault()
                                                 toggleFavorite(tool.id)
                                             }}
-                                            className="absolute right-6 top-6 p-2 rounded-xl glass hover:brand-gradient group/star z-10 transition-all shadow-xl bg-[var(--bg-secondary)]/50 min-w-[36px] min-h-[36px] flex items-center justify-center"
+                                            className="absolute right-6 top-6 p-2 rounded-xl glass hover:brand-gradient group/star z-10 transition-all shadow-xl bg-[var(--bg-secondary)] dark:bg-[var(--bg-secondary)]/50 border border-[var(--border-primary)] min-w-[36px] min-h-[36px] flex items-center justify-center"
                                         >
                                             <Star className={cn("w-4 h-4 transition-all", favorites.includes(tool.id) ? "text-yellow-500 fill-yellow-500" : "text-[var(--text-secondary)] group-hover/star:text-[var(--text-primary)]")} />
                                         </motion.button>
@@ -239,7 +241,7 @@ export function Dashboard() {
                                         <Icon className="absolute -right-4 -bottom-4 w-32 h-32 text-[var(--text-muted)] opacity-10 group-hover:text-brand/10 group-hover:opacity-100 transition-all duration-500 -rotate-12 group-hover:rotate-0" />
 
                                         <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-[var(--bg-secondary)] border border-[var(--border-primary)] group-hover:brand-gradient transition-all duration-300", tool.color)}>
-                                            <Icon className="w-7 h-7 text-inherit group-hover:text-black transition-colors" />
+                                            <Icon className="w-7 h-7 text-inherit group-hover:text-white transition-colors" />
                                         </div>
 
                                         <h3 className="text-xl md:text-2xl font-bold mb-3 group-hover:text-brand transition-colors text-[var(--text-primary)]">{tool.name}</h3>

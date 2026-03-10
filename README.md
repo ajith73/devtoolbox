@@ -2,11 +2,11 @@
 
 **Live Demo: [https://devtoolbox-phi.vercel.app/](https://devtoolbox-phi.vercel.app/)**
 
-DevBox is an ultra-premium, 100% client-side collection of **72 developer utilities** designed for extreme speed, precision, and privacy.
+DevBox is an ultra-premium, 100% client-side collection of **75+ developer utilities** designed for extreme speed, precision, and privacy.
 
-- **🎯 Professional Suite**: Now with 72 premium developer tools
+- **🎯 Professional Suite**: Now with 75+ premium developer tools
 - **💎 Core Tool Overhaul**: Significant enhancements to JSON, CSV, JWT, Token, and Timestamp tools
-- **🌍 Advanced Diagram Creation**: Pro Architecture Diagram tool with visual builder, Mermaid 11 support, persistent versioning, and mobile-responsive UI
+- **🖼️ Architecture Studio**: Immersive system design visualization with Mermaid support, responsive layout, and Blueprint grid
 - **📄 Pro Document Suite**: Advanced PDF, Resume, and Invoice generators with template support
 - **🌍 Real-time Utilities**: Weather Lookup, Currency Converter, and Language Translator
 - **🖼️ Placeholders**: Generate custom placeholder images with effects
