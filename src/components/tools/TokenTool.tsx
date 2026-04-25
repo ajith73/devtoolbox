@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Key, Shield, Copy } from 'lucide-react'
 import { ToolLayout } from './ToolLayout'
 import { copyToClipboard } from '../../lib/utils'
@@ -147,6 +147,15 @@ export function TokenTool() {
     const [suffix, setSuffix] = usePersistentState('token_suffix', '')
     const [expiryHours, setExpiryHours] = usePersistentState('expiry_hours', 0)
     const [generatedTokens, setGeneratedTokens] = usePersistentState('generated_tokens', [] as string[])
+    const [currentTime, setCurrentTime] = useState(Date.now())
+
+    // Update current time for expiry calculations
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentTime(Date.now())
+        }, 1000)
+        return () => clearInterval(interval)
+    }, [])
 
     const generateToken = () => {
         let token = ''
@@ -426,7 +435,7 @@ export function TokenTool() {
                         <span className="text-sm">hours</span>
                         {expiryHours > 0 && (
                             <span className="text-sm text-[var(--text-muted)]">
-                                (Expires: {new Date(Date.now() + expiryHours * 60 * 60 * 1000).toLocaleString()})
+                                (Expires: {new Date(currentTime + expiryHours * 60 * 60 * 1000).toLocaleString()})
                             </span>
                         )}
                     </div>

@@ -159,7 +159,7 @@ export function MarkdownTool() {
         }, 0)
     }
 
-    const toolbarActions = [
+    const toolbarActions = useMemo(() => [
         { icon: Bold, action: () => insertText('**', '**'), tooltip: 'Bold (Ctrl+B)' },
         { icon: Italic, action: () => insertText('*', '*'), tooltip: 'Italic (Ctrl+I)' },
         { icon: Heading1, action: () => insertText('# ', '', 'Heading'), tooltip: 'Heading 1' },
@@ -172,7 +172,7 @@ export function MarkdownTool() {
         { icon: ListOrdered, action: () => insertText('1. ', '', 'List item'), tooltip: 'Numbered List' },
         { icon: CheckSquare, action: () => insertText('- [ ] ', '', 'Task'), tooltip: 'Task List' },
         { icon: Table, action: () => setShowTableEditor(true), tooltip: 'Insert Table' },
-    ]
+    ], [insertText])
 
     // Image upload handler
     const handleImageUpload = (files: FileList) => {

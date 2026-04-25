@@ -20,12 +20,14 @@ import {
   Cloud,
   Terminal,
   Workflow,
-  Eye
+  Eye,
+  Upload
 } from 'lucide-react'
-import { cn, copyToClipboard } from '../../lib/utils'
+import { copyToClipboard, cn } from '../../lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import { jsPDF } from 'jspdf'
+import { usePersistentState } from '../../lib/storage'
 
 const TEMPLATES = [
   {
@@ -156,6 +158,113 @@ const TEMPLATES = [
     "Storage" : 20
     "Networking" : 15
     "Security" : 20`
+  },
+  {
+    id: 'cloud-native',
+    name: 'Cloud Native',
+    icon: Cloud,
+    code: `graph TD
+    subgraph "Cloud Provider"
+        CDN[Content Delivery]
+        LB[Load Balancer]
+        CDN --> LB
+    end
+    
+    subgraph "Kubernetes Cluster"
+        LB --> Ingress[Ingress Controller]
+        Ingress --> Service1[Service A]
+        Ingress --> Service2[Service B]
+        
+        Service1 --> Pod1[Pod 1]
+        Service1 --> Pod2[Pod 2]
+        Service2 --> Pod3[Pod 3]
+        Service2 --> Pod4[Pod 4]
+    end
+    
+    subgraph "Data Layer"
+        Pod1 --> Redis[(Redis Cache)]
+        Pod2 --> PostgreSQL[(PostgreSQL)]
+        Pod3 --> MongoDB[(MongoDB)]
+        Pod4 --> S3[S3 Storage]
+    end`
+  },
+  {
+    id: 'serverless',
+    name: 'Serverless Architecture',
+    icon: Cloud,
+    code: `graph LR
+    subgraph "Frontend"
+        Web[React App]
+        Mobile[Mobile App]
+    end
+    
+    subgraph "API Gateway"
+        API[API Gateway]
+        Auth[Cognito Auth]
+    end
+    
+    subgraph "Serverless Functions"
+        Lambda1[User Functions]
+        Lambda2[Order Functions]
+        Lambda3[Payment Functions]
+    end
+    
+    subgraph "Data & Storage"
+        Dynamo[(DynamoDB)]
+        S3[S3 Storage]
+        CDN[CloudFront CDN]
+    end
+    
+    Web --> API
+    Mobile --> API
+    API --> Auth
+    API --> Lambda1
+    API --> Lambda2
+    API --> Lambda3
+    
+    Lambda1 --> Dynamo
+    Lambda2 --> Dynamo
+    Lambda3 --> Dynamo
+    
+    Lambda1 --> S3
+    Lambda2 --> S3
+    Lambda3 --> S3
+    
+    S3 --> CDN`
+  },
+  {
+    id: 'hybrid-cloud',
+    name: 'Hybrid Cloud',
+    icon: Network,
+    code: `graph TD
+    subgraph "On-Premise"
+        OnPrem[(Legacy Database)]
+        OnPremApp[Legacy App]
+        VPN[VPN Gateway]
+    end
+    
+    subgraph "Public Cloud"
+        CloudLB[Cloud Load Balancer]
+        CloudApp[Cloud Application]
+        CloudDB[(Cloud Database)]
+    end
+    
+    subgraph "Private Cloud"
+        PrivateLB[Private Load Balancer]
+        PrivateApp[Private Application]
+        PrivateDB[(Private Database)]
+    end
+    
+    OnPremApp --> VPN
+    VPN --> CloudLB
+    CloudLB --> CloudApp
+    CloudApp --> CloudDB
+    
+    CloudLB --> PrivateLB
+    PrivateLB --> PrivateApp
+    PrivateApp --> PrivateDB
+    
+    CloudDB -.-> |Sync| PrivateDB`
   }
 ]
 
@@ -168,15 +277,15 @@ const MERMAID_THEMES = [
 ]
 
 export function ArchitectureDiagramTool() {
-  const [input, setInput] = useState(TEMPLATES[0].code)
+  const [input, setInput] = usePersistentState('architecture_diagram_input', TEMPLATES[0].code)
   const [error, setError] = useState<string | null>(null)
-  const [mermaidTheme, setMermaidTheme] = useState('dark')
+  const [mermaidTheme, setMermaidTheme] = usePersistentState('architecture_diagram_theme', 'dark')
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showTemplates, setShowTemplates] = useState(false)
   const [zoom, setZoom] = useState(1)
   const svgRef = useRef<HTMLDivElement>(null)
-  const [layoutMode, setLayoutMode] = useState<'split' | 'canvas'>('split')
-  const [activeTab, setActiveTab] = useState<'preview' | 'editor'>('preview')
+  const [layoutMode, setLayoutMode] = usePersistentState<'split' | 'canvas'>('architecture_diagram_layout', 'split')
+  const [activeTab, setActiveTab] = usePersistentState<'preview' | 'editor'>('architecture_diagram_active_tab', 'preview')
 
   // Unified rendering effect for Mermaid
   useEffect(() => {
@@ -253,6 +362,30 @@ export function ArchitectureDiagramTool() {
       }
     }
   }, [])
+
+  const handleLoadDiagram = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        try {
+          const content = e.target?.result as string
+          if (file.name.endsWith('.json')) {
+            const jsonData = JSON.parse(content)
+            if (jsonData.diagram) {
+              setInput(jsonData.diagram)
+              if (jsonData.theme) setMermaidTheme(jsonData.theme)
+            }
+          } else {
+            setInput(content)
+          }
+        } catch (err) {
+          setError('Failed to load diagram file')
+        }
+      }
+      reader.readAsText(file)
+    }
+  }
 
   const handleDownloadSVG = () => {
     const svg = svgRef.current?.querySelector('svg')
@@ -545,6 +678,16 @@ export function ArchitectureDiagramTool() {
                 </div>
                 <div className="flex -space-x-1.5 overflow-hidden py-1">
                   {[1, 2, 3].map(i => <div key={i} className="w-4 h-4 rounded-full border border-[var(--bg-primary)] bg-brand shrink-0" />)}
+                  <input
+                    type="file"
+                    accept=".json,.md,.txt"
+                    onChange={handleLoadDiagram}
+                    className="hidden"
+                    id="diagram-file-input"
+                  />
+                  <label htmlFor="diagram-file-input" className="cursor-pointer">
+                    <Upload className="w-4 h-4 text-[var(--text-muted)] group-hover/btn:text-brand transition-colors" />
+                  </label>
                 </div>
               </div>
               <div className="relative flex-1 group/text">
