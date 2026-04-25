@@ -43,11 +43,13 @@ import { LoremIpsumTool } from './components/tools/LoremIpsumTool'
 import { PasswordCheckerTool } from './components/tools/PasswordCheckerTool'
 import { MorseTool } from './components/tools/MorseTool'
 import { JsonXmlTool } from './components/tools/JsonXmlTool'
+import { JsonYamlTool } from './components/tools/JsonYamlTool'
 import { ImageBase64Tool } from './components/tools/ImageBase64Tool'
 import { ImageInfoTool } from './components/tools/ImageInfoTool'
 import { UnitConverterTool } from './components/tools/UnitConverterTool'
 import { TimezoneConverterTool } from './components/tools/TimezoneConverterTool'
 import { WorldClockTool } from './components/tools/WorldClockTool'
+import { HtmlPreviewTool } from './components/tools/HtmlPreviewTool'
 import { IpLookupTool } from './components/tools/IpLookupTool'
 import { DnsLookupTool } from './components/tools/DnsLookupTool'
 import { WhoisRdapTool } from './components/tools/WhoisRdapTool'
@@ -61,7 +63,7 @@ import { ImageFormatConverterTool } from './components/tools/ImageFormatConverte
 import { SlugTool } from './components/tools/SlugTool'
 import { DateDifferenceTool } from './components/tools/DateDifferenceTool'
 import { IpValidatorTool } from './components/tools/IpValidatorTool'
-import { JsonYamlTool } from './components/tools/JsonYamlTool'
+import { XmlYamlTool } from './components/tools/XmlYamlTool'
 import { CurrencyConverterTool } from './components/tools/CurrencyConverterTool'
 import { DictionaryTool } from './components/tools/DictionaryTool'
 import { CountryInfoTool } from './components/tools/CountryInfoTool'
@@ -72,6 +74,7 @@ import { TranslatorTool } from './components/tools/TranslatorTool'
 import { PlaceholderImageTool } from './components/tools/PlaceholderImageTool'
 import { InfoPage } from './components/InfoPage'
 import { ArchitectureDiagramTool } from './components/tools/ArchitectureDiagramTool'
+import { MarkdownTool } from './components/tools/MarkdownTool'
 import { AboutPage } from './components/pages/About'
 import { PrivacyPolicyPage } from './components/pages/PrivacyPolicy'
 import { ContactPage } from './components/pages/Contact'
@@ -92,6 +95,7 @@ function App() {
           <Route path="/jwt" element={<JwtTool />} />
           <Route path="/timestamp" element={<TimestampTool />} />
           <Route path="/regex" element={<RegexTool />} />
+          <Route path="/html-preview" element={<HtmlPreviewTool />} />
           <Route path="/html" element={<HtmlTool />} />
           <Route path="/csv" element={<CsvTool />} />
           <Route path="/password" element={<PasswordTool />} />
@@ -139,6 +143,7 @@ function App() {
           <Route path="/slug" element={<SlugTool />} />
           <Route path="/date-diff" element={<DateDifferenceTool />} />
           <Route path="/ip-validator" element={<IpValidatorTool />} />
+          <Route path="/xml-yaml" element={<XmlYamlTool />} />
           <Route path="/json-yaml" element={<JsonYamlTool />} />
           <Route path="/flex" element={<FlexTool />} />
           <Route path="/grid" element={<GridTool />} />
@@ -153,6 +158,7 @@ function App() {
           <Route path="/translator" element={<TranslatorTool />} />
           <Route path="/placeholder-image" element={<PlaceholderImageTool />} />
           <Route path="/architecture" element={<ArchitectureDiagramTool />} />
+          <Route path="/markdown" element={<MarkdownTool />} />
 
           <Route path="/privacy" element={
             <InfoPage

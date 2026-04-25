@@ -53,6 +53,11 @@ export function ToolLayout({
         copyDisabledRef.current = copyDisabled
     }, [copyDisabled])
 
+    // Scroll to top when component mounts
+    useEffect(() => {
+        window.scrollTo(0, 0)
+    }, [])
+
     // Temporarily disabled to test infinite loop
     // useEffect(() => {
     //     const currentToolInfo = TOOLS.find(t => t.name === title || t.seoTitle?.includes(title) || t.description === description)

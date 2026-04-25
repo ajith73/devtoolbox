@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
-import { ToolLayout } from './ToolLayout'
 import { SearchCode, AlertCircle, Copy, Check, Info } from 'lucide-react'
+import { ToolLayout } from './ToolLayout'
 import { cn, copyToClipboard } from '../../lib/utils'
 import { usePersistentState } from '../../lib/storage'
 
@@ -15,6 +15,10 @@ interface MatchResult {
   line: number
   lineStart: number
   lineEnd: number
+  start: number
+  end: number
+  namedGroups: { [key: string]: string | undefined }
+  groupCount: number
 }
 
 const REGEX_PRESETS = [
@@ -100,7 +104,7 @@ const FLAGS: { value: Flag; description: string }[] = [
   { value: 'y', description: 'Sticky - Matches only at lastIndex' }
 ]
 
-// Helper function to find all matches with line numbers
+// Helper function to find all matches with line numbers and enhanced details
 function findMatches(text: string, regex: RegExp): MatchResult[] {
   const matches: MatchResult[] = []
   const lines = text.split('\n')
@@ -119,13 +123,32 @@ function findMatches(text: string, regex: RegExp): MatchResult[] {
 
     while ((match = regex.exec(line)) !== null) {
       const matchStart = match.index
+      const matchEnd = matchStart + match[0].length
+
+      // Extract named groups
+      const namedGroups: { [key: string]: string | undefined } = {}
+      if (match.groups) {
+        Object.assign(namedGroups, match.groups)
+      }
+
+      // Count all groups (including unnamed)
+      const groupCount = match.length - 1
 
       // For non-global regex, break after first match
       if (!regex.global) {
         matches.push({
           match: match[0],
           index: lineStart + matchStart,
-          groups: match.groups || {},
+          start: lineStart + matchStart,
+          end: lineStart + matchEnd,
+          groups: match.slice(1).reduce((acc, group, index) => {
+            if (group !== undefined) {
+              acc[index + 1] = group
+            }
+            return acc
+          }, {} as { [key: string]: string | undefined }),
+          namedGroups,
+          groupCount,
           line: i,
           lineStart,
           lineEnd
@@ -137,7 +160,16 @@ function findMatches(text: string, regex: RegExp): MatchResult[] {
       matches.push({
         match: match[0],
         index: lineStart + matchStart,
-        groups: match.groups || {},
+        start: lineStart + matchStart,
+        end: lineStart + matchEnd,
+        groups: match.slice(1).reduce((acc, group, index) => {
+          if (group !== undefined) {
+            acc[index + 1] = group
+          }
+          return acc
+        }, {} as { [key: string]: string | undefined }),
+        namedGroups,
+        groupCount,
         line: i,
         lineStart,
         lineEnd
@@ -149,7 +181,7 @@ function findMatches(text: string, regex: RegExp): MatchResult[] {
       }
     }
 
-    globalIndex += line.length + 1 // +1 for the newline character
+    globalIndex += line.length + 1 // +1 for newline character
   }
 
   return matches

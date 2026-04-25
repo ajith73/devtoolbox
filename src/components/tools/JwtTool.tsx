@@ -161,6 +161,15 @@ export function JwtTool() {
     const [generatedToken, setGeneratedToken] = useState('')
     const [securityWarnings, setSecurityWarnings] = useState<string[]>([])
     const [error, setError] = useState<string | null>(null)
+    const [currentTime, setCurrentTime] = useState(Date.now() / 1000)
+
+    // Update current time for live expiry checking
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentTime(Date.now() / 1000)
+        }, 1000)
+        return () => clearInterval(interval)
+    }, [])
 
     useEffect(() => {
         if (!input.trim()) {
@@ -477,9 +486,9 @@ export function JwtTool() {
                                                 <span className="text-sm text-[var(--text-muted)]">No expiry</span>
                                             )}
                                         </div>
-                                        {decodedData.payload.exp && decodedData.payload.exp > Date.now() / 1000 && (
+                                        {decodedData.payload.exp && decodedData.payload.exp > currentTime && (
                                             <div className="text-xs text-[var(--text-muted)] mt-1">
-                                                Expires in: {Math.floor((decodedData.payload.exp - Date.now() / 1000) / 3600)}h {Math.floor(((decodedData.payload.exp - Date.now() / 1000) % 3600) / 60)}m
+                                                Expires in: {Math.floor((decodedData.payload.exp - currentTime) / 3600)}h {Math.floor(((decodedData.payload.exp - currentTime) % 3600) / 60)}m
                                             </div>
                                         )}
                                     </div>
